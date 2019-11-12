@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<projectConfiguration>
+    <configVersion>2</configVersion>
+    <robotExecEnvironment path="C:/Python37-32" interpreter="Python"/>
+    <relativeTo>WORKSPACE</relativeTo>
+    <referencedLibrary type="PYTHON" name="callReporter" path="robotsolution/robot/library/myLibraries/callReporter.py"/>
+    <referencedLibrary type="PYTHON" name="clipboard" path="robotsolution/robot/library/clipboard.py"/>
+    <referencedLibrary type="PYTHON" name="ConvertToCSV" path="robotsolution/robot/library/myLibraries/ConvertToCSV.py"/>
+    <referencedLibrary type="PYTHON" name="DatabaseLibrary" path="robotsolution/robot/library/DatabaseLibrary/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="excel" path="robotsolution/robot/library/excel/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="functions" path="robotsolution/robot/library/functions.py"/>
+    <referencedLibrary type="PYTHON" name="HttpLibrary" path="robotsolution/robot/library/HttpLibrary/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="HttpLibrary.HTTP" path="robotsolution/robot/library/HttpLibrary/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="HTTPUtils" path="robotsolution/robot/library/HTTPUtils.py"/>
+    <referencedLibrary type="PYTHON" name="json_implementation" path="robotsolution/robot/library/myLibraries/json_implementation.py"/>
+    <referencedLibrary type="PYTHON" name="JSONUtils" path="robotsolution/robot/library/JSONUtils.py"/>
+    <referencedLibrary type="PYTHON" name="OSUtils" path="robotsolution/robot/library/OSUtils.py"/>
+    <referencedLibrary type="PYTHON" name="pyautogui" path="robotsolution/robot/library/pyautogui/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="pyperclip" path="robotsolution/robot/library/pyperclip/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="requests" path="robotsolution/robot/library/requests/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="RequestsClientCert" path="robotsolution/robot/library/RequestsClientCert.py"/>
+    <referencedLibrary type="PYTHON" name="RequestsLibrary" path="robotsolution/robot/library/RequestsLibrary/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="restartModule" path="robotsolution/robot/library/myLibraries/restartModule.py"/>
+    <referencedLibrary type="PYTHON" name="ScreenCapLibrary" path="robotsolution/robot/library/ScreenCapLibrary/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="Selenium2Library" path="robotsolution/robot/library/Selenium2Library/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="SeleniumLibrary" path="robotsolution/robot/library/SeleniumLibrary/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="SSHLibrary" path="robotsolution/robot/library/SSHLibrary/__init__.py"/>
+    <referencedLibrary type="PYTHON" name="StringTemplater" path="robotsolution/robot/library/StringTemplater.py"/>
+    <referencedLibrary type="PYTHON" name="testLib" path="robotsolution/robot/library/myLibraries/testLib.py"/>
+    <referencedLibrary type="PYTHON" name="testScreenshot" path="robotsolution/robot/library/myLibraries/testScreenshot.py"/>
+    <referencedLibrary type="PYTHON" name="UUID" path="robotsolution/robot/library/UUID.py"/>
+    <referencedLibrary type="PYTHON" name="desktopAutomation" path="robotsolution/robot/library/myLibraries/desktopAutomation.py"/>
+    <pythonpath>
+        <path location="robotsolution/robot/library"/>
+    </pythonpath>
+    <classpath/>
+    <excludedForValidation/>
+    <isValidatedFileSizeCheckingEnabled>true</isValidatedFileSizeCheckingEnabled>
+    <validatedFileMaxSize>1024</validatedFileMaxSize>
+</projectConfiguration>

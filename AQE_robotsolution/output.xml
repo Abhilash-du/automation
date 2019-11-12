@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 3.1.2 (Python 3.7.2 on win32)" generated="20190905 18:58:36.589" rpa="false">
+<suite id="s1" name="Robotsolution" source="H:\Desktop\robot_framework\robotsolution">
+<suite id="s1-s1" name="Robot" source="H:\Desktop\robot_framework\robotsolution\robot">
+<suite id="s1-s1-s1" name="Testsuites" source="H:\Desktop\robot_framework\robotsolution\robot\testsuites">
+<suite id="s1-s1-s1-s1" name="Aai Testsuite" source="H:\Desktop\robot_framework\robotsolution\robot\testsuites\aai_testsuite.robot">
+<test id="s1-s1-s1-s1-t1" name="Run A&amp;AI UI Shakeout">
+<kw name="Run A&amp;AI UI Basic Validations">
+<msg timestamp="20190905 18:58:50.630" level="FAIL">No keyword with name 'Run A&amp;AI UI Basic Validations' found. Did you mean:
+    AAI_RESOURCE.A&amp;AI UI Basic Validations</msg>
+<status status="FAIL" starttime="20190905 18:58:50.623" endtime="20190905 18:58:50.630"></status>
+</kw>
+<doc>A&amp;AI UI Shakeout.It Consists of 2 TCs. Namely, UI Basic Validations and UI Connectivity Validations.</doc>
+<status status="FAIL" starttime="20190905 18:58:50.601" endtime="20190905 18:58:50.631" critical="yes">No keyword with name 'Run A&amp;AI UI Basic Validations' found. Did you mean:
+    AAI_RESOURCE.A&amp;AI UI Basic Validations</status>
+</test>
+<status status="FAIL" starttime="20190905 18:58:36.859" endtime="20190905 18:58:50.632"></status>
+</suite>
+<status status="FAIL" starttime="20190905 18:58:36.850" endtime="20190905 18:58:50.636"></status>
+</suite>
+<status status="FAIL" starttime="20190905 18:58:36.841" endtime="20190905 18:58:50.640"></status>
+</suite>
+<status status="FAIL" starttime="20190905 18:58:36.788" endtime="20190905 18:58:50.642"></status>
+</suite>
+<statistics>
+<total>
+<stat pass="0" fail="1">Critical Tests</stat>
+<stat pass="0" fail="1">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="0" fail="1" id="s1" name="Robotsolution">Robotsolution</stat>
+<stat pass="0" fail="1" id="s1-s1" name="Robot">Robotsolution.Robot</stat>
+<stat pass="0" fail="1" id="s1-s1-s1" name="Testsuites">Robotsolution.Robot.Testsuites</stat>
+<stat pass="0" fail="1" id="s1-s1-s1-s1" name="Aai Testsuite">Robotsolution.Robot.Testsuites.Aai Testsuite</stat>
+</suite>
+</statistics>
+<errors>
+<msg timestamp="20190905 18:58:36.554" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Run Unix Validations' in file 'H:\Desktop\robot_framework\robotsolution\robot\testsuites\aai_testsuite.robot' on line 51.</msg>
+<msg timestamp="20190905 18:58:36.555" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' # A&amp;AI Service Instance Unix Get Request' in file 'H:\Desktop\robot_framework\robotsolution\robot\testsuites\aai_testsuite.robot' on line 56.</msg>
+<msg timestamp="20190905 18:58:43.846" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' @{takeSnapshot}' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\commonKeywords.robot' on line 23.</msg>
+<msg timestamp="20190905 18:58:43.847" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' ${elementName}' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\commonKeywords.robot' on line 29.</msg>
+<msg timestamp="20190905 18:58:43.870" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Authentication' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\commonKeywords.robot' on line 408.</msg>
+<msg timestamp="20190905 18:58:50.467" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Setup Browser Firefox' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\browser_setup.robot' on line 26.</msg>
+<msg timestamp="20190905 18:58:50.469" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Setup Browser Chrome' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\browser_setup.robot' on line 56.</msg>
+</errors>
+</robot>

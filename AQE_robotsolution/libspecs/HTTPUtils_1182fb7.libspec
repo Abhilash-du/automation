@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="HTTPUtils" type="library" format="ROBOT" generated="20191018 11:07:36">
+<version></version>
+<scope>test case</scope>
+<namedargs>yes</namedargs>
+<doc>HTTPUtils is common resource for simple http helper keywords.</doc>
+<kw name="Disable Warnings">
+<arguments>
+</arguments>
+<doc>Disable the cert warnings when creating sessions for A&amp;AI API Calls</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Url Encode String">
+<arguments>
+<arg>barestring</arg>
+</arguments>
+<doc>URL Encode String takes in a string and converts into 'percent-encoded' string</doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>

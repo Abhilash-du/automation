@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="OSUtils" type="library" format="ROBOT" generated="20191018 11:07:41">
+<version></version>
+<scope>test case</scope>
+<namedargs>yes</namedargs>
+<doc>Utilities useful for constructing OpenStack HEAT requests </doc>
+<kw name="Get Normalized Os">
+<arguments>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>

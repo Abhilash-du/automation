@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="testScreenshot" type="library" format="ROBOT" generated="20191018 11:08:14">
+<version></version>
+<scope>global</scope>
+<namedargs>yes</namedargs>
+<doc>Created on Nov 30, 2018
+
+@author: kumarsis SUDHANSU KUMAR SINGH</doc>
+<kw name="Copy Logs">
+<arguments>
+<arg>workDir</arg>
+<arg>suiteName</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Take Snapshot">
+<arguments>
+<arg>workDir</arg>
+<arg>suiteName</arg>
+<arg>testName</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>

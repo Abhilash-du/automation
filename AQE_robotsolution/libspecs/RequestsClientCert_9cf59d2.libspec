@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RequestsClientCert" type="library" format="ROBOT" generated="20191018 11:07:51">
+<version></version>
+<scope>test case</scope>
+<namedargs>yes</namedargs>
+<doc>RequestsClientCert allows adding a client cert to the Requests Robot Library.</doc>
+<kw name="Add Client Cert">
+<arguments>
+<arg>session</arg>
+<arg>cert</arg>
+</arguments>
+<doc>Add Client Cert takes in a requests session object and a string path to the cert</doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>

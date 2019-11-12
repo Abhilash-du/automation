@@ -1,0 +1,27 @@
+Generated File. Do not edit.
+
+[HEADER]
+Version|0.19t|$
+Arch|x86-msvc|$
+
+[PLUGINS]
+
+[INVALID]
+C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AIR\nppdf32.dll|$
+1564609370000|$
+C:\Program Files (x86)\Microsoft Office\root\Office16\NPSPWRAP.DLL|$
+1562860038092|$
+c:\Program Files (x86)\Microsoft Silverlight\5.1.50907.0\npctrl.dll|$
+1493831068000|$
+c:\Program Files (x86)\Microsoft Silverlight\5.1.50907.0\npctrlui.dll|$
+1493831068000|$
+C:\Program Files (x86)\Microsoft Office\root\VFS\ProgramFilesX86\Mozilla Firefox\plugins\npMeetingJoinPluginOC.dll|$
+1562860041882|$
+C:\Program Files (x86)\Citrix\ICA Client\npicaN.dll|$
+1473014666000|$
+C:\Program Files (x86)\Citrix\ICA Client\npURLInterceptorPlugin.dll|$
+1473015206000|$
+C:\ProgramData\Aternity\hooks\npHtmlHook.dll|$
+1535284708000|$
+C:\ProgramData\Aternity\hooks\npHtmlHook64.dll|$
+1535284708000|$

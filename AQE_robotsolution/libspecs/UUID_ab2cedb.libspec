@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="UUID" type="library" format="ROBOT" generated="20191018 11:08:15">
+<version></version>
+<scope>test case</scope>
+<namedargs>yes</namedargs>
+<doc>UUID is a simple library that generates a uuid</doc>
+<kw name="Generate MilliTimestamp UUID">
+<arguments>
+</arguments>
+<doc>generate a millisecond timestamp uuid</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Generate UUID">
+<arguments>
+</arguments>
+<doc>generate a uuid</doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="JSONUtils" type="library" format="ROBOT" generated="20191018 11:07:40">
+<version></version>
+<scope>test case</scope>
+<namedargs>yes</namedargs>
+<doc>JSONUtils is common resource for simple json helper keywords.</doc>
+<kw name="Find Element In Array">
+<arguments>
+<arg>searchedArray</arg>
+<arg>key</arg>
+<arg>value</arg>
+</arguments>
+<doc>Takes in an array and a key value, it will return the items in the array that has a key and value that matches what you pass in</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Json Equals">
+<arguments>
+<arg>left</arg>
+<arg>right</arg>
+</arguments>
+<doc>JSON Equals takes in two strings or json objects, converts them into json if needed and then compares them, returning if they are equal or not.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Make List Into Dict">
+<arguments>
+<arg>listOfDicts</arg>
+<arg>key</arg>
+</arguments>
+<doc>Converts a list of dicts that contains a field that has a unique key into a dict of dicts</doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>

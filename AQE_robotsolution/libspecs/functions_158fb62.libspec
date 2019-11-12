@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="functions" type="library" format="ROBOT" generated="20191018 11:07:26">
+<version></version>
+<scope>global</scope>
+<namedargs>yes</namedargs>
+<doc>Documentation for library ``functions``.</doc>
+<kw name="Assoc">
+<arguments>
+<arg>fdict</arg>
+<arg>key</arg>
+<arg>val</arg>
+<arg>*kvs</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Compose">
+<arguments>
+<arg>*funcs</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Cons">
+<arguments>
+<arg>x</arg>
+<arg>seq</arg>
+</arguments>
+<doc>Return a tuple where x is the first element and seq is the rest.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Contains">
+<arguments>
+<arg>fdict</arg>
+<arg>key</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Destructure">
+<arguments>
+<arg>f</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Dict Invert">
+<arguments>
+<arg>dict</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Dissoc">
+<arguments>
+<arg>fdict</arg>
+<arg>key</arg>
+<arg>*ks</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Find">
+<arguments>
+<arg>fdict</arg>
+<arg>key</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="First">
+<arguments>
+<arg>coll</arg>
+</arguments>
+<doc>Return the first item in a dictionary, list, or tuple.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Flatten">
+<arguments>
+<arg>dict</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Fmap">
+<arguments>
+<arg>f</arg>
+<arg>coll</arg>
+</arguments>
+<doc>Apply a function to each item in a dictionary, list, or tuple.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Format">
+<arguments>
+<arg>fmt</arg>
+<arg>*args</arg>
+<arg>**kwargs</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Frozendict">
+<arguments>
+<arg>*keyvals</arg>
+</arguments>
+<doc>Return an immutable dictionary</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Get">
+<arguments>
+<arg>fdict</arg>
+<arg>key</arg>
+<arg>default=None</arg>
+</arguments>
+<doc>Return the value mapped to a key, default or None if key not present</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Hash Map">
+<arguments>
+<arg>*keyvals</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Identity">
+<arguments>
+<arg>x</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Intersection">
+<arguments>
+<arg>x</arg>
+<arg>y</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Is Seq">
+<arguments>
+<arg>x</arg>
+</arguments>
+<doc>Return True if x is iterable.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Keys">
+<arguments>
+<arg>fdict</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Last">
+<arguments>
+<arg>coll</arg>
+</arguments>
+<doc>Return the last item in a dictionary, list, or tuple.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Memoize">
+<arguments>
+<arg>f</arg>
+</arguments>
+<doc>Return a memoized version of a function.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Merge">
+<arguments>
+<arg>*fdicts</arg>
+</arguments>
+<doc>Merge two or more frozen dictionaries.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="None">
+<arguments>
+<arg>*args</arg>
+<arg>**kwargs</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Rest">
+<arguments>
+<arg>coll</arg>
+</arguments>
+<doc>Return the remaining items in a dictionary, list, or tuple.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Select Keys">
+<arguments>
+<arg>fdict</arg>
+<arg>keys</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Thread">
+<arguments>
+<arg>x</arg>
+<arg>form</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Threadfirst">
+<arguments>
+</arguments>
+<doc>*Creating keyword failed:* Keyword with same name defined multiple times.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Threadlast">
+<arguments>
+</arguments>
+<doc>*Creating keyword failed:* Keyword with same name defined multiple times.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Union">
+<arguments>
+<arg>*sets</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Vals">
+<arguments>
+<arg>fdict</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Walk">
+<arguments>
+<arg>inner</arg>
+<arg>outer</arg>
+<arg>data</arg>
+</arguments>
+<doc>Traverse an arbitrary data structure and apply a function to each node.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Walk Replace">
+<arguments>
+<arg>smap</arg>
+<arg>data</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Wraps">
+<arguments>
+<arg>wrapped</arg>
+<arg>assigned=('__module__', '__name__', '__qualname__', '__doc__', '__annotations__')</arg>
+<arg>updated=('__dict__',)</arg>
+</arguments>
+<doc>Decorator factory to apply update_wrapper() to a wrapper function
+
+Returns a decorator that invokes update_wrapper() with the decorated
+function as the wrapper argument and the arguments to wraps() as the
+remaining arguments. Default arguments are as for update_wrapper().
+This is a convenience function to simplify applying partial() to
+update_wrapper().</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Zipdict">
+<arguments>
+<arg>keys</arg>
+<arg>vals</arg>
+</arguments>
+<doc>Return an immutable dictionary with keys mapped to corresponding
+values</doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>

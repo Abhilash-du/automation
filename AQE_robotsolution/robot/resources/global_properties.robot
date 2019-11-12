@@ -1,0 +1,74 @@
+*** Settings ***
+Documentation                                   store all properties that can change or are used in multiple places here
+...                                             format is all caps with underscores between words and prepended with GLOBAL
+...                                             make sure you prepend them with GLOBAL so that other files can easily see it is from this file.
+*** Variables ***
+${GLOBAL_APPLICATION_ID}                        robot-ete
+${GLOBAL_MSO_STATUS_PATH}                       /onap/so/infra/orchestrationRequests/v6/
+${GLOBAL_SELENIUM_BROWSER_CAPABILITIES}         Create Dictionary
+${GLOBAL_ENVIRONMENT}                           E2E3_1908
+${GLOBAL_SELENIUM_BROWSER}                      Firefox
+${GLOBAL_SELENIUM_BROWSER_IMPLICIT_WAIT}        120s
+###-------------------------------> PORTAL_START<-------------------------------###
+${IST_1806_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_ist/ecompui/login.htm
+${E2E_1806_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_ete2/ecompui/login.htm
+${IST_1810_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_ist3/ecompui/login.htm
+${E2E_P1806_PORTAL_URL}           https://www.e-access.att.com/ecomp_portal_ete3/ecompui/login.htm
+${E2E_1810_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_ete2/ecompui/login.htm
+${PROD_1810_PORTAL_URL}           https://www.e-access.att.com/ecomp_portal/ecompui/login.htm
+${IST_1902_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_ist/ecompui/login.htm
+${E2E_1902_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_ete3/ecompui/login.htm
+${ETE1_1902_PORTAL_URL}           https://www.e-access.att.com/ecomp_portal_s1/ecompui/login.htm
+${E2E3_1908_PORTAL_URL}           https://www.e-access.att.com/ecomp_portal_s3/ecompui/login.htm
+${E2E2_1908_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_s2/ecompui/login.htm
+${E2E1_1908_PORTAL_URL}            https://www.e-access.att.com/ecomp_portal_s1/ecompui/login.htm
+###-------------------------------> PORTAL_END<-------------------------------###
+${ETE_1908_AAI_FRONTEND_ENDPOINT}               https://aai-uispt01-conexus.ecomp.cci.att.com:8443
+${IST_1908_GLOBAL_NARAD_SERVER_PROTOCOL}        https://narad-nIST02-conexus.ecomp.cci.att.com:8443
+${ASDC_API_END_POINT_E2E3_1908}                 https://ecomp-portal-web.s3.ecomp.cci.att.com:30671/ecompui/auxapi/userProfile
+${ASDC_API_END_POINT_IST_1908}                  https://ecomp-portal-web-ist.ecomp.cci.att.com:8443/ecompui/auxapi/userProfile
+${ASDC_API_END_POINT_E2E1_1908}                 https://ecomp-portal-web.ete2.ecomp.cci.att.com:8443/ecompui/auxapi/userProfile
+${ASDC_API_END_POINT_E2E2_1908}                 https://ecomp-portal-web.s2.ecomp.cci.att.com:8443/ecompui/auxapi/userProfile
+${CONSUL_TunnelsourceLocalPort}                 5001
+${CONSUL_url_IST_1902}                          http://localhost:${CONSUL_TunnelsourceLocalPort}/ui/#/zlecdyh2bdcc1/services
+${CONSUL_TunnelbindAddress}                     8500
+${CONSUL_Host}                                  32.68.131.75                          
+${GLOBAL_SELENIUM_DELAY}                        0
+${GLOBAL_SELENIUM_BROWSER_WAIT_TIMEOUT}         25
+${GLOBAL_OPENSTACK_HEAT_SERVICE_TYPE}           orchestration
+${GLOBAL_OPENSTACK_CINDER_SERVICE_TYPE}         volume
+${GLOBAL_OPENSTACK_NOVA_SERVICE_TYPE}           compute
+${GLOBAL_OPENSTACK_NEUTRON_SERVICE_TYPE}        network
+${GLOBAL_OPENSTACK_GLANCE_SERVICE_TYPE}         image
+${GLOBAL_OPENSTACK_KEYSTONE_SERVICE_TYPE}       identity
+${GLOBAL_OPENSTACK_STACK_DEPLOYMENT_TIMEOUT}    600s
+${GLOBAL_AAI_CLOUD_OWNER}                       CloudOwner
+${GLOBAL_AAI_CLOUD_OWNER_DEFINED_TYPE}          OwnerType
+${GLOBAL_AAI_COMPLEX_NAME}                      clli1
+${GLOBAL_AAI_PHYSICAL_LOCATION_ID}              clli1
+${GLOBAL_BUILD_NUMBER}                          0
+${GLOBAL_VID_UI_TIMEOUT_SHORT}                  20s
+${GLOBAL_VID_UI_TIMEOUT_MEDIUM}                 60s
+${GLOBAL_VID_UI_TIMEOUT_LONG}                   120s
+${GLOBAL_VM_PRIVATE_KEY}                        ${EXECDIR}/robot/assets/keys/robot_ssh_private_key.pvt
+${GLOBAL_ONAP_PRIVATE_KEY}                      ${EXECDIR}/robot/assets/keys/onap_dev.pvt
+${GLOBAL_AAI_ZONE_ID}                           nova1
+${GLOBAL_AAI_ZONE_NAME}                         nova
+${GLOBAL_AAI_DESIGN_TYPE}                       integration
+${GLOBAL_AAI_ZONE_CONTEXT}                      labs
+${GLOBAL_DNS_HV_VES_NAME}                       dcae-hv-ves-collector
+${GLOBAL_HV_VES_SERVER_PORT}                    6061
+${GLOBAL_DNS_VES_NAME}                          dcae-ves-collector
+${GLOBAL_VES_SERVER_PORT}                       8080
+${GLOBAL_DNS_MESSAGE_ROUTER_KAFKA_NAME}         message-router-kafka
+${GLOBAL_MESSAGE_ROUTER_KAFKA_PORT}             9092
+${AIC_LAB}                                       rdm5a
+${GENERIC_AIC_URL}                              https://dashboard-aic.${AIC_LAB}.cci.att.com/horizon/project/
+${GLOBAL_PUBLIC_KEY}                            ${EXECDIR}\\properties\\Input\\input
+${GLOBAL_ATT_PROXY}                         135.28.13.11:8080
+${CAMUNDA_URL_E2E3_1908}                       Url  
+${CAMUNDA_USERNAME_E2E3_1908}                  readonly
+${CAMUNDA_PASSWORD_E2E3_1908}                  readonly  
+${NC_DOMAIN}                                    rdm57a             
+${GENERIC_NC_URL}                               https://dashboard-nc.${NC_DOMAIN}.cci.att.com/horizon/project/
+${PRIVATE_KEY_PATH}                             ${EXECDIR}${/}properties//private.txt

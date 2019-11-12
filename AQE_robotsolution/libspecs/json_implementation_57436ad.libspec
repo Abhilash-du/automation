@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="json_implementation" type="library" format="ROBOT" generated="20191018 11:07:38">
+<version></version>
+<scope>test case</scope>
+<namedargs>yes</namedargs>
+<doc>Documentation for library ``json_implementation``.</doc>
+<kw name="Findjsonkeyval">
+<arguments>
+<arg>file_input_path</arg>
+<arg>json_key</arg>
+<arg>data_key_num</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Get List Length">
+<arguments>
+<arg>list_val</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Merge Dictionary">
+<arguments>
+<arg>dict1</arg>
+<arg>dict2</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Remove Whitespace">
+<arguments>
+<arg>instring</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Replace Txt In Json">
+<arguments>
+<arg>file_input_path</arg>
+<arg>file_out_path</arg>
+<arg>key_path</arg>
+<arg>replace_with</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Search Data In File">
+<arguments>
+<arg>file_path</arg>
+<arg>key</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+<kw name="Write Json In File">
+<arguments>
+<arg>file_path</arg>
+<arg>data</arg>
+</arguments>
+<doc></doc>
+<tags>
+</tags>
+</kw>
+</keywordspec>
