@@ -25,7 +25,7 @@
     <referencedLibrary type="PYTHON" name="UUID" path="robotsolution/robot/library/UUID.py"/>
     <referencedLibrary type="PYTHON" name="desktopAutomation" path="robotsolution/robot/library/myLibraries/desktopAutomation.py"/>
     <referencedLibrary type="PYTHON" name="ScreenCapLibrary" path="C:/Python37/Lib/site-packages"/>
-    <referencedLibrary type="PYTHON" name="testLib" path="C:/AQE_thon/PullCloud/AQE_robotsolution/robot/library/myLibraries"/>
+    <referencedLibrary type="PYTHON" name="testLib" path="C:/Python37/Lib/site-packages/myLibraries"/>
     <pythonpath>
         <path location="robotsolution/robot/library"/>
     </pythonpath>

@@ -11,7 +11,7 @@ Library              pyautogui
 Library                pyperclip 
 Library                clipboard    
 Library               ScreenCapLibrary     # PyGTK       #screenshot_module=
-Library             testLib
+Library             C:${/}Python37${/}Lib${/}site-packages${/}myLibraries${/}testLib.py
 Library             restartModule 
 #Library            tryLib 
 #Library              ../library/myLibraries/PreloadExcelManipulation.py      
