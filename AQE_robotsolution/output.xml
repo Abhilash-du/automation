@@ -1,48 +1,349 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<robot generator="Robot 3.1.2 (Python 3.7.2 on win32)" generated="20190905 18:58:36.589" rpa="false">
-<suite id="s1" name="Robotsolution" source="H:\Desktop\robot_framework\robotsolution">
-<suite id="s1-s1" name="Robot" source="H:\Desktop\robot_framework\robotsolution\robot">
-<suite id="s1-s1-s1" name="Testsuites" source="H:\Desktop\robot_framework\robotsolution\robot\testsuites">
-<suite id="s1-s1-s1-s1" name="Aai Testsuite" source="H:\Desktop\robot_framework\robotsolution\robot\testsuites\aai_testsuite.robot">
-<test id="s1-s1-s1-s1-t1" name="Run A&amp;AI UI Shakeout">
-<kw name="Run A&amp;AI UI Basic Validations">
-<msg timestamp="20190905 18:58:50.630" level="FAIL">No keyword with name 'Run A&amp;AI UI Basic Validations' found. Did you mean:
-    AAI_RESOURCE.A&amp;AI UI Basic Validations</msg>
-<status status="FAIL" starttime="20190905 18:58:50.623" endtime="20190905 18:58:50.630"></status>
+<robot generator="Robot 3.1.1 (Python 3.7.2 on win32)" generated="20191113 05:48:23.602" rpa="false">
+<suite id="s1" name="AQE robotsolution" source="C:\AQE_thon\PullCloud\AQE_robotsolution">
+<suite id="s1-s1" name="Robot" source="C:\AQE_thon\PullCloud\AQE_robotsolution\robot">
+<suite id="s1-s1-s1" name="Resources" source="C:\AQE_thon\PullCloud\AQE_robotsolution\robot\resources">
+<suite id="s1-s1-s1-s1" name="AQE" source="C:\AQE_thon\PullCloud\AQE_robotsolution\robot\resources\AQE">
+<suite id="s1-s1-s1-s1-s1" name="testAutomation" source="C:\AQE_thon\PullCloud\AQE_robotsolution\robot\resources\AQE\testAutomation.robot">
+<test id="s1-s1-s1-s1-s1-t1" name="Demo">
+<kw name="common get username" library="commonKeywords">
+<assign>
+<var>${user}</var>
+</assign>
+<kw name="Set Log Level" library="BuiltIn">
+<doc>Sets the log threshold to the specified level and returns the old level.</doc>
+<arguments>
+<arg>NONE</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:24.902" endtime="20191113 05:48:24.903"></status>
 </kw>
-<doc>A&amp;AI UI Shakeout.It Consists of 2 TCs. Namely, UI Basic Validations and UI Connectivity Validations.</doc>
-<status status="FAIL" starttime="20190905 18:58:50.601" endtime="20190905 18:58:50.631" critical="yes">No keyword with name 'Run A&amp;AI UI Basic Validations' found. Did you mean:
-    AAI_RESOURCE.A&amp;AI UI Basic Validations</status>
+<kw name="Call Authentication" library="testLib">
+<arguments>
+<arg>C:\\AQE_thon\\PullCloud\\AQE_robotsolution\\robot\\resources\\..\\..\\properties\\Input</arg>
+</arguments>
+<assign>
+<var>@{credentials}</var>
+</assign>
+<status status="PASS" starttime="20191113 05:48:24.903" endtime="20191113 05:48:25.290"></status>
+</kw>
+<kw name="Strip String" library="String">
+<doc>Remove leading and/or trailing whitespaces from the given string.</doc>
+<arguments>
+<arg>@{credentials}[0]</arg>
+<arg>both</arg>
+</arguments>
+<assign>
+<var>${username}</var>
+</assign>
+<status status="PASS" starttime="20191113 05:48:25.306" endtime="20191113 05:48:25.306"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:24.902" endtime="20191113 05:48:25.306"></status>
+</kw>
+<kw name="Log To Console" library="BuiltIn">
+<doc>Logs the given message to the console.</doc>
+<arguments>
+<arg>${user}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:25.306" endtime="20191113 05:48:25.306"></status>
+</kw>
+<kw name="Setup Browser" library="browser_setup">
+<doc>Sets up browser based upon the value of Firefox</doc>
+<kw name="Run Keyword If" library="BuiltIn">
+<doc>Runs the given keyword with the given arguments, if ``condition`` is true.</doc>
+<arguments>
+<arg>'${GLOBAL_SELENIUM_BROWSER}' == 'firefox' or '${GLOBAL_SELENIUM_BROWSER}' == 'Firefox'</arg>
+<arg>Setup Browser Firefox</arg>
+</arguments>
+<kw name="Setup Browser Firefox" library="browser_setup">
+<kw name="Evaluate" library="BuiltIn">
+<doc>Evaluates the given expression in Python and returns the results.</doc>
+<arguments>
+<arg>sys.modules['selenium.webdriver'].common.desired_capabilities.DesiredCapabilities.FIREFOX</arg>
+<arg>sys,selenium.webdriver</arg>
+</arguments>
+<assign>
+<var>${caps}</var>
+</assign>
+<status status="PASS" starttime="20191113 05:48:25.306" endtime="20191113 05:48:25.306"></status>
+</kw>
+<kw name="Set To Dictionary" library="Collections">
+<doc>Adds the given ``key_value_pairs`` and ``items`` to the ``dictionary``.</doc>
+<arguments>
+<arg>${caps}</arg>
+<arg>elementScrollBehavior</arg>
+<arg>1</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:25.306" endtime="20191113 05:48:25.313"></status>
+</kw>
+<kw name="Log To Console" library="BuiltIn">
+<doc>Logs the given message to the console.</doc>
+<arguments>
+<arg>${caps}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:25.313" endtime="20191113 05:48:25.313"></status>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<arguments>
+<arg>${FF_PROFILE}</arg>
+<arg>${FF_PROFILE_Latest}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:25.313" endtime="20191113 05:48:25.313"></status>
+</kw>
+<kw name="Create Webdriver" library="SeleniumLibrary">
+<doc>Creates an instance of Selenium WebDriver.</doc>
+<arguments>
+<arg>Firefox</arg>
+<arg>desired_capabilities=${caps}</arg>
+<arg>firefox_profile=${FF_PROFILE}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:25.313" endtime="20191113 05:48:34.073"></status>
+</kw>
+<kw name="Delete All Cookies" library="SeleniumLibrary">
+<doc>Deletes all cookies.</doc>
+<status status="PASS" starttime="20191113 05:48:34.073" endtime="20191113 05:48:34.073"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:25.306" endtime="20191113 05:48:34.073"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:25.306" endtime="20191113 05:48:34.073"></status>
+</kw>
+<kw name="Run Keyword If" library="BuiltIn">
+<doc>Runs the given keyword with the given arguments, if ``condition`` is true.</doc>
+<arguments>
+<arg>"${GLOBAL_SELENIUM_BROWSER}"=="Chrome" or "${GLOBAL_SELENIUM_BROWSER}"=="chrome"</arg>
+<arg>Setup Browser Chrome</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:34.073" endtime="20191113 05:48:34.073"></status>
+</kw>
+<kw name="Log" library="BuiltIn">
+<doc>Logs the given message with the given level.</doc>
+<arguments>
+<arg>Running with ${GLOBAL_SELENIUM_BROWSER}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:34.073" endtime="20191113 05:48:34.073"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:25.306" endtime="20191113 05:48:34.073"></status>
+</kw>
+<kw name="Go To" library="SeleniumLibrary">
+<doc>Navigates the active browser instance to the provided ``url``.</doc>
+<arguments>
+<arg>https://www.google.com</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:34.089" endtime="20191113 05:48:46.030"></status>
+</kw>
+<kw name="Common Click Element" library="commonKeywords">
+<arguments>
+<arg>googl</arg>
+<arg>//input[@name="q" and @type="text"]</arg>
+</arguments>
+<kw name="Log To Console" library="BuiltIn">
+<doc>Logs the given message to the console.</doc>
+<arguments>
+<arg>trying to click${xpath}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.030" endtime="20191113 05:48:46.030"></status>
+</kw>
+<kw name="Wait Until Element Is Visible" library="SeleniumLibrary">
+<doc>Waits until element ``locator`` is visible.</doc>
+<arguments>
+<arg>${xpath}</arg>
+<arg>timeout=${time}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.035" endtime="20191113 05:48:46.084"></status>
+</kw>
+<kw name="Wait Until Element Is Enabled" library="SeleniumLibrary">
+<doc>Waits until element ``locator`` is enabled.</doc>
+<arguments>
+<arg>${xpath}</arg>
+<arg>timeout=${time}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.084" endtime="20191113 05:48:46.120"></status>
+</kw>
+<kw name="Run Keyword And Return Status" library="BuiltIn">
+<doc>Runs the given keyword with given arguments and returns the status as a Boolean value.</doc>
+<arguments>
+<arg>Evaluate</arg>
+<arg>@{takeSnapshot}[0]</arg>
+</arguments>
+<assign>
+<var>${i}</var>
+</assign>
+<kw name="Evaluate" library="BuiltIn">
+<doc>Evaluates the given expression in Python and returns the results.</doc>
+<arguments>
+<arg>@{takeSnapshot}[0]</arg>
+</arguments>
+<status status="FAIL" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.120"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.120"></status>
+</kw>
+<kw name="Run Keyword If" library="BuiltIn">
+<doc>Runs the given keyword with the given arguments, if ``condition`` is true.</doc>
+<arguments>
+<arg>${i} == False</arg>
+<arg>log to console</arg>
+<arg>${elementName}</arg>
+<arg>ELSE</arg>
+<arg>Run Keywords</arg>
+<arg>set global Variable</arg>
+<arg>${snapValue}</arg>
+<arg>@{takeSnapshot}[0]</arg>
+<arg>AND</arg>
+<arg>log to console</arg>
+<arg>${elementName}</arg>
+</arguments>
+<kw name="Log To Console" library="BuiltIn">
+<doc>Logs the given message to the console.</doc>
+<arguments>
+<arg>${elementName}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.120"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.120"></status>
+</kw>
+<kw name="Run Keyword If" library="BuiltIn">
+<doc>Runs the given keyword with the given arguments, if ``condition`` is true.</doc>
+<arguments>
+<arg>'${snapValue}' == 'y' or '${snapValue}' == 'Y' or '${i}' == 'False'</arg>
+<arg>Wait Until Keyword Succeeds</arg>
+<arg>8x</arg>
+<arg>20s</arg>
+<arg>Click Element Screenshot</arg>
+<arg>${xpath}</arg>
+<arg>ELSE IF</arg>
+<arg>'${snapValue}' == 'N' or '${snapValue}' == 'n'</arg>
+<arg>Wait Until Keyword Succeeds</arg>
+<arg>8x</arg>
+<arg>30s</arg>
+<arg>Click Element</arg>
+<arg>${xpath}</arg>
+<arg>ELSE</arg>
+<arg>log to console</arg>
+<arg>wrong value entered.Please enter Y or N</arg>
+</arguments>
+<kw name="Wait Until Keyword Succeeds" library="BuiltIn">
+<doc>Runs the specified keyword and retries if it fails.</doc>
+<arguments>
+<arg>8x</arg>
+<arg>20s</arg>
+<arg>Click Element Screenshot</arg>
+<arg>${xpath}</arg>
+</arguments>
+<kw name="Click Element Screenshot" library="commonKeywords">
+<arguments>
+<arg>${xpath}</arg>
+</arguments>
+<kw name="Wait Until Element Is Visible" library="SeleniumLibrary">
+<doc>Waits until element ``locator`` is visible.</doc>
+<arguments>
+<arg>${xpath}</arg>
+<arg>timeout=${time}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.153"></status>
+</kw>
+<kw name="Wait Until Element Is Enabled" library="SeleniumLibrary">
+<doc>Waits until element ``locator`` is enabled.</doc>
+<arguments>
+<arg>${xpath}</arg>
+<arg>timeout=${time}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.153" endtime="20191113 05:48:46.199"></status>
+</kw>
+<kw name="Take Snapshot" library="testScreenshot">
+<arguments>
+<arg>${EXECDIR}</arg>
+<arg>${SUITE NAME}</arg>
+<arg>${Test Name}</arg>
+</arguments>
+<assign>
+<var>${SnapDIR}</var>
+</assign>
+<status status="PASS" starttime="20191113 05:48:46.199" endtime="20191113 05:48:46.284"></status>
+</kw>
+<kw name="Click Element" library="SeleniumLibrary">
+<doc>Click element identified by ``locator``.</doc>
+<arguments>
+<arg>${xpath}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.284" endtime="20191113 05:48:46.547"></status>
+</kw>
+<kw name="count Screeshots" library="commonKeywords">
+<arguments>
+<arg>${count}</arg>
+</arguments>
+<kw name="Evaluate" library="BuiltIn">
+<doc>Evaluates the given expression in Python and returns the results.</doc>
+<arguments>
+<arg>${count}+1</arg>
+</arguments>
+<assign>
+<var>${countNew}</var>
+</assign>
+<status status="PASS" starttime="20191113 05:48:46.547" endtime="20191113 05:48:46.554"></status>
+</kw>
+<kw name="Set Global Variable" library="BuiltIn">
+<doc>Makes a variable available globally in all tests and suites.</doc>
+<arguments>
+<arg>${count}</arg>
+<arg>${countNew}</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.554" endtime="20191113 05:48:46.554"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:46.547" endtime="20191113 05:48:46.554"></status>
+</kw>
+<kw name="Take Screenshot" library="ScreenCapLibrary">
+<doc>Takes a screenshot in the specified format at library import and
+embeds it into the log file (PNG by default).</doc>
+<arguments>
+<arg>${SnapDIR}/mypic</arg>
+</arguments>
+<status status="PASS" starttime="20191113 05:48:46.554" endtime="20191113 05:48:46.792"></status>
+</kw>
+<kw name="Convert To String" library="BuiltIn">
+<doc>Converts the given item to a Unicode string.</doc>
+<arguments>
+<arg>${count}</arg>
+</arguments>
+<assign>
+<var>${countString}</var>
+</assign>
+<status status="PASS" starttime="20191113 05:48:46.792" endtime="20191113 05:48:46.792"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.792"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.792"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:46.120" endtime="20191113 05:48:46.792"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:46.030" endtime="20191113 05:48:46.792"></status>
+</kw>
+<status status="PASS" starttime="20191113 05:48:24.901" endtime="20191113 05:48:46.792" critical="yes"></status>
 </test>
-<status status="FAIL" starttime="20190905 18:58:36.859" endtime="20190905 18:58:50.632"></status>
+<status status="PASS" starttime="20191113 05:48:23.709" endtime="20191113 05:48:46.792"></status>
 </suite>
-<status status="FAIL" starttime="20190905 18:58:36.850" endtime="20190905 18:58:50.636"></status>
+<status status="PASS" starttime="20191113 05:48:23.709" endtime="20191113 05:48:46.792"></status>
 </suite>
-<status status="FAIL" starttime="20190905 18:58:36.841" endtime="20190905 18:58:50.640"></status>
+<status status="PASS" starttime="20191113 05:48:23.709" endtime="20191113 05:48:46.792"></status>
 </suite>
-<status status="FAIL" starttime="20190905 18:58:36.788" endtime="20190905 18:58:50.642"></status>
+<status status="PASS" starttime="20191113 05:48:23.708" endtime="20191113 05:48:46.792"></status>
+</suite>
+<status status="PASS" starttime="20191113 05:48:23.671" endtime="20191113 05:48:46.792"></status>
 </suite>
 <statistics>
 <total>
-<stat pass="0" fail="1">Critical Tests</stat>
-<stat pass="0" fail="1">All Tests</stat>
+<stat pass="1" fail="0">Critical Tests</stat>
+<stat pass="1" fail="0">All Tests</stat>
 </total>
 <tag>
 </tag>
 <suite>
-<stat pass="0" fail="1" id="s1" name="Robotsolution">Robotsolution</stat>
-<stat pass="0" fail="1" id="s1-s1" name="Robot">Robotsolution.Robot</stat>
-<stat pass="0" fail="1" id="s1-s1-s1" name="Testsuites">Robotsolution.Robot.Testsuites</stat>
-<stat pass="0" fail="1" id="s1-s1-s1-s1" name="Aai Testsuite">Robotsolution.Robot.Testsuites.Aai Testsuite</stat>
+<stat pass="1" fail="0" id="s1" name="AQE robotsolution">AQE robotsolution</stat>
+<stat pass="1" fail="0" id="s1-s1" name="Robot">AQE robotsolution.Robot</stat>
+<stat pass="1" fail="0" id="s1-s1-s1" name="Resources">AQE robotsolution.Robot.Resources</stat>
+<stat pass="1" fail="0" id="s1-s1-s1-s1" name="AQE">AQE robotsolution.Robot.Resources.AQE</stat>
+<stat pass="1" fail="0" id="s1-s1-s1-s1-s1" name="testAutomation">AQE robotsolution.Robot.Resources.AQE.testAutomation</stat>
 </suite>
 </statistics>
 <errors>
-<msg timestamp="20190905 18:58:36.554" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Run Unix Validations' in file 'H:\Desktop\robot_framework\robotsolution\robot\testsuites\aai_testsuite.robot' on line 51.</msg>
-<msg timestamp="20190905 18:58:36.555" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' # A&amp;AI Service Instance Unix Get Request' in file 'H:\Desktop\robot_framework\robotsolution\robot\testsuites\aai_testsuite.robot' on line 56.</msg>
-<msg timestamp="20190905 18:58:43.846" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' @{takeSnapshot}' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\commonKeywords.robot' on line 23.</msg>
-<msg timestamp="20190905 18:58:43.847" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' ${elementName}' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\commonKeywords.robot' on line 29.</msg>
-<msg timestamp="20190905 18:58:43.870" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Authentication' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\commonKeywords.robot' on line 408.</msg>
-<msg timestamp="20190905 18:58:50.467" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Setup Browser Firefox' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\browser_setup.robot' on line 26.</msg>
-<msg timestamp="20190905 18:58:50.469" level="WARN">Collapsing consecutive whitespace during parsing is deprecated. Fix ' Setup Browser Chrome' in file 'H:\Desktop\robot_framework\robotsolution\robot\resources\browser_setup.robot' on line 56.</msg>
 </errors>
 </robot>

@@ -21,10 +21,11 @@
     <referencedLibrary type="PYTHON" name="SeleniumLibrary" path="robotsolution/robot/library/SeleniumLibrary/__init__.py"/>
     <referencedLibrary type="PYTHON" name="SSHLibrary" path="robotsolution/robot/library/SSHLibrary/__init__.py"/>
     <referencedLibrary type="PYTHON" name="StringTemplater" path="robotsolution/robot/library/StringTemplater.py"/>
-    <referencedLibrary type="PYTHON" name="testLib" path="robotsolution/robot/library/myLibraries/testLib.py"/>
     <referencedLibrary type="PYTHON" name="testScreenshot" path="robotsolution/robot/library/myLibraries/testScreenshot.py"/>
     <referencedLibrary type="PYTHON" name="UUID" path="robotsolution/robot/library/UUID.py"/>
     <referencedLibrary type="PYTHON" name="desktopAutomation" path="robotsolution/robot/library/myLibraries/desktopAutomation.py"/>
+    <referencedLibrary type="PYTHON" name="ScreenCapLibrary" path="C:/Python37/Lib/site-packages"/>
+    <referencedLibrary type="PYTHON" name="testLib" path="C:/AQE_thon/PullCloud/AQE_robotsolution/robot/library/myLibraries"/>
     <pythonpath>
         <path location="robotsolution/robot/library"/>
     </pythonpath>

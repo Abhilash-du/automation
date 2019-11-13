@@ -10,7 +10,7 @@ Resource          global_properties.robot
 
 *** Variables ***
 ${HEADLESS}   False
-${FF_PROFILE_Latest}                ${EXECDIR}\\qpdikdhx.firefoxProfile
+${FF_PROFILE_Latest}                ${EXECDIR}\\profile_ff
 
 *** Keywords ***
 Setup Browser
