@@ -9,9 +9,10 @@ from cryptography import utils
 from cryptography.exceptions import (
     InvalidSignature, UnsupportedAlgorithm, _Reasons
 )
-from cryptography.hazmat.primitives import constant_time, hashes
+from cryptography.hazmat.primitives import constant_time, hashes, mac
 
 
+@utils.register_interface(mac.MACContext)
 @utils.register_interface(hashes.HashContext)
 class _HMACContext(object):
     def __init__(self, backend, key, algorithm, ctx=None):
@@ -27,7 +28,7 @@ class _HMACContext(object):
             evp_md = self._backend._evp_md_from_algorithm(algorithm)
             if evp_md == self._backend._ffi.NULL:
                 raise UnsupportedAlgorithm(
-                    "{} is not a supported hash on this backend".format(
+                    "{0} is not a supported hash on this backend".format(
                         algorithm.name),
                     _Reasons.UNSUPPORTED_HASH
                 )

@@ -7,23 +7,25 @@ class TestThreadedTaskDispatcher(unittest.TestCase):
         from waitress.task import ThreadedTaskDispatcher
         return ThreadedTaskDispatcher()
 
-    def test_handler_thread_task_raises(self):
+    def test_handler_thread_task_is_None(self):
         inst = self._makeOne()
-        inst.threads.add(0)
-        inst.logger = DummyLogger()
-        class BadDummyTask(DummyTask):
-            def service(self):
-                super(BadDummyTask, self).service()
-                inst.stop_count += 1
-                raise Exception
-        task = BadDummyTask()
-        inst.logger = DummyLogger()
-        inst.queue.append(task)
-        inst.active_count += 1
+        inst.threads[0] = True
+        inst.queue.put(None)
         inst.handler_thread(0)
-        self.assertEqual(inst.stop_count, 0)
-        self.assertEqual(inst.active_count, 0)
-        self.assertEqual(inst.threads, set())
+        self.assertEqual(inst.stop_count, -1)
+        self.assertEqual(inst.threads, {})
+
+    def test_handler_thread_task_raises(self):
+        from waitress.task import JustTesting
+        inst = self._makeOne()
+        inst.threads[0] = True
+        inst.logger = DummyLogger()
+        task = DummyTask(JustTesting)
+        inst.logger = DummyLogger()
+        inst.queue.put(task)
+        inst.handler_thread(0)
+        self.assertEqual(inst.stop_count, -1)
+        self.assertEqual(inst.threads, {})
         self.assertEqual(len(inst.logger.logged), 1)
 
     def test_set_thread_count_increase(self):
@@ -36,54 +38,49 @@ class TestThreadedTaskDispatcher(unittest.TestCase):
     def test_set_thread_count_increase_with_existing(self):
         inst = self._makeOne()
         L = []
-        inst.threads = {0}
+        inst.threads = {0: 1}
         inst.start_new_thread = lambda *x: L.append(x)
         inst.set_thread_count(2)
         self.assertEqual(L, [(inst.handler_thread, (1,))])
 
     def test_set_thread_count_decrease(self):
         inst = self._makeOne()
-        inst.threads = {0, 1}
+        inst.threads = {'a': 1, 'b': 2}
         inst.set_thread_count(1)
-        self.assertEqual(inst.stop_count, 1)
+        self.assertEqual(inst.queue.qsize(), 1)
+        self.assertEqual(inst.queue.get(), None)
 
     def test_set_thread_count_same(self):
         inst = self._makeOne()
         L = []
         inst.start_new_thread = lambda *x: L.append(x)
-        inst.threads = {0}
+        inst.threads = {0: 1}
         inst.set_thread_count(1)
         self.assertEqual(L, [])
 
-    def test_add_task_with_idle_threads(self):
+    def test_add_task(self):
         task = DummyTask()
         inst = self._makeOne()
-        inst.threads.add(0)
-        inst.queue_logger = DummyLogger()
         inst.add_task(task)
-        self.assertEqual(len(inst.queue), 1)
-        self.assertEqual(len(inst.queue_logger.logged), 0)
+        self.assertEqual(inst.queue.qsize(), 1)
+        self.assertTrue(task.deferred)
 
-    def test_add_task_with_all_busy_threads(self):
-        task = DummyTask()
+    def test_add_task_defer_raises(self):
+        task = DummyTask(ValueError)
         inst = self._makeOne()
-        inst.queue_logger = DummyLogger()
-        inst.add_task(task)
-        self.assertEqual(len(inst.queue_logger.logged), 1)
-        inst.add_task(task)
-        self.assertEqual(len(inst.queue_logger.logged), 2)
+        self.assertRaises(ValueError, inst.add_task, task)
+        self.assertEqual(inst.queue.qsize(), 0)
+        self.assertTrue(task.deferred)
+        self.assertTrue(task.cancelled)
 
     def test_shutdown_one_thread(self):
         inst = self._makeOne()
-        inst.threads.add(0)
+        inst.threads[0] = 1
         inst.logger = DummyLogger()
         task = DummyTask()
-        inst.queue.append(task)
+        inst.queue.put(task)
         self.assertEqual(inst.shutdown(timeout=.01), True)
-        self.assertEqual(inst.logger.logged, [
-            '1 thread(s) still running',
-            'Canceling 1 pending task(s)',
-        ])
+        self.assertEqual(inst.logger.logged, ['1 thread(s) still running'])
         self.assertEqual(task.cancelled, True)
 
     def test_shutdown_no_threads(self):
@@ -110,6 +107,15 @@ class TestTask(unittest.TestCase):
         request.version = '8.4'
         inst = self._makeOne(request=request)
         self.assertEqual(inst.version, '1.0')
+
+    def test_cancel(self):
+        inst = self._makeOne()
+        inst.cancel()
+        self.assertTrue(inst.close_on_finish)
+
+    def test_defer(self):
+        inst = self._makeOne()
+        self.assertEqual(inst.defer(), None)
 
     def test_build_response_header_bad_http_version(self):
         inst = self._makeOne()
@@ -196,57 +202,6 @@ class TestTask(unittest.TestCase):
         self.assertEqual(inst.close_on_finish, True)
         self.assertTrue(('Connection', 'close') in inst.response_headers)
 
-    def test_build_response_header_v11_204_no_content_length_or_transfer_encoding(self):
-        # RFC 7230: MUST NOT send Transfer-Encoding or Content-Length
-        # for any response with a status code of 1xx or 204.
-        inst = self._makeOne()
-        inst.request = DummyParser()
-        inst.version = '1.1'
-        inst.status = '204 No Content'
-        result = inst.build_response_header()
-        lines = filter_lines(result)
-        self.assertEqual(len(lines), 4)
-        self.assertEqual(lines[0], b'HTTP/1.1 204 No Content')
-        self.assertEqual(lines[1], b'Connection: close')
-        self.assertTrue(lines[2].startswith(b'Date:'))
-        self.assertEqual(lines[3], b'Server: waitress')
-        self.assertEqual(inst.close_on_finish, True)
-        self.assertTrue(('Connection', 'close') in inst.response_headers)
-
-    def test_build_response_header_v11_1xx_no_content_length_or_transfer_encoding(self):
-        # RFC 7230: MUST NOT send Transfer-Encoding or Content-Length
-        # for any response with a status code of 1xx or 204.
-        inst = self._makeOne()
-        inst.request = DummyParser()
-        inst.version = '1.1'
-        inst.status = '100 Continue'
-        result = inst.build_response_header()
-        lines = filter_lines(result)
-        self.assertEqual(len(lines), 4)
-        self.assertEqual(lines[0], b'HTTP/1.1 100 Continue')
-        self.assertEqual(lines[1], b'Connection: close')
-        self.assertTrue(lines[2].startswith(b'Date:'))
-        self.assertEqual(lines[3], b'Server: waitress')
-        self.assertEqual(inst.close_on_finish, True)
-        self.assertTrue(('Connection', 'close') in inst.response_headers)
-
-    def test_build_response_header_v11_304_no_content_length_or_transfer_encoding(self):
-        # RFC 7230: MUST NOT send Transfer-Encoding or Content-Length
-        # for any response with a status code of 1xx, 204 or 304.
-        inst = self._makeOne()
-        inst.request = DummyParser()
-        inst.version = '1.1'
-        inst.status = '304 Not Modified'
-        result = inst.build_response_header()
-        lines = filter_lines(result)
-        self.assertEqual(len(lines), 4)
-        self.assertEqual(lines[0], b'HTTP/1.1 304 Not Modified')
-        self.assertEqual(lines[1], b'Connection: close')
-        self.assertTrue(lines[2].startswith(b'Date:'))
-        self.assertEqual(lines[3], b'Server: waitress')
-        self.assertEqual(inst.close_on_finish, True)
-        self.assertTrue(('Connection', 'close') in inst.response_headers)
-
     def test_build_response_header_via_added(self):
         inst = self._makeOne()
         inst.request = DummyParser()
@@ -292,12 +247,6 @@ class TestTask(unittest.TestCase):
         inst.response_headers = [('Content-Length', '70')]
         inst.remove_content_length_header()
         self.assertEqual(inst.response_headers, [])
-
-    def test_remove_content_length_header_with_other(self):
-        inst = self._makeOne()
-        inst.response_headers = [('Content-Length', '70'), ('Content-Type', 'text/html')]
-        inst.remove_content_length_header()
-        self.assertEqual(inst.response_headers, [('Content-Type', 'text/html')])
 
     def test_start(self):
         inst = self._makeOne()
@@ -569,34 +518,6 @@ class TestWSGITask(unittest.TestCase):
         self.assertEqual(inst.close_on_finish, True)
         self.assertEqual(len(inst.logger.logged), 0)
 
-    def test_execute_app_without_body_204_logged(self):
-        def app(environ, start_response):
-            start_response('204 No Content', [('Content-Length', '3')])
-            return [b'abc']
-        inst = self._makeOne()
-        inst.channel.server.application = app
-        inst.logger = DummyLogger()
-        inst.execute()
-        self.assertEqual(inst.close_on_finish, True)
-        self.assertNotIn(b'abc', inst.channel.written)
-        self.assertNotIn(b'Content-Length', inst.channel.written)
-        self.assertNotIn(b'Transfer-Encoding', inst.channel.written)
-        self.assertEqual(len(inst.logger.logged), 1)
-
-    def test_execute_app_without_body_304_logged(self):
-        def app(environ, start_response):
-            start_response('304 Not Modified', [('Content-Length', '3')])
-            return [b'abc']
-        inst = self._makeOne()
-        inst.channel.server.application = app
-        inst.logger = DummyLogger()
-        inst.execute()
-        self.assertEqual(inst.close_on_finish, True)
-        self.assertNotIn(b'abc', inst.channel.written)
-        self.assertNotIn(b'Content-Length', inst.channel.written)
-        self.assertNotIn(b'Transfer-Encoding', inst.channel.written)
-        self.assertEqual(len(inst.logger.logged), 1)
-
     def test_execute_app_returns_closeable(self):
         class closeable(list):
             def close(self):
@@ -737,13 +658,11 @@ class TestWSGITask(unittest.TestCase):
         # nail the keys of environ
         self.assertEqual(sorted(environ.keys()), [
             'CONTENT_LENGTH', 'CONTENT_TYPE', 'HTTP_CONNECTION', 'HTTP_X_FOO',
-            'PATH_INFO', 'QUERY_STRING', 'REMOTE_ADDR', 'REMOTE_HOST',
-            'REMOTE_PORT', 'REQUEST_METHOD', 'SCRIPT_NAME', 'SERVER_NAME',
-            'SERVER_PORT', 'SERVER_PROTOCOL', 'SERVER_SOFTWARE', 'wsgi.errors',
-            'wsgi.file_wrapper', 'wsgi.input', 'wsgi.input_terminated',
+            'PATH_INFO', 'QUERY_STRING', 'REMOTE_ADDR', 'REQUEST_METHOD',
+            'SCRIPT_NAME', 'SERVER_NAME', 'SERVER_PORT', 'SERVER_PROTOCOL',
+            'SERVER_SOFTWARE', 'wsgi.errors', 'wsgi.file_wrapper', 'wsgi.input',
             'wsgi.multiprocess', 'wsgi.multithread', 'wsgi.run_once',
-            'wsgi.url_scheme', 'wsgi.version'
-        ])
+            'wsgi.url_scheme', 'wsgi.version'])
 
         self.assertEqual(environ['REQUEST_METHOD'], 'GET')
         self.assertEqual(environ['SERVER_PORT'], '80')
@@ -755,8 +674,6 @@ class TestWSGITask(unittest.TestCase):
         self.assertEqual(environ['PATH_INFO'], '/')
         self.assertEqual(environ['QUERY_STRING'], 'abc')
         self.assertEqual(environ['REMOTE_ADDR'], '127.0.0.1')
-        self.assertEqual(environ['REMOTE_HOST'], '127.0.0.1')
-        self.assertEqual(environ['REMOTE_PORT'], '39830')
         self.assertEqual(environ['CONTENT_TYPE'], 'abc')
         self.assertEqual(environ['CONTENT_LENGTH'], '10')
         self.assertEqual(environ['HTTP_X_FOO'], 'BAR')
@@ -767,9 +684,86 @@ class TestWSGITask(unittest.TestCase):
         self.assertEqual(environ['wsgi.multiprocess'], False)
         self.assertEqual(environ['wsgi.run_once'], False)
         self.assertEqual(environ['wsgi.input'], 'stream')
-        self.assertEqual(environ['wsgi.input_terminated'], True)
         self.assertEqual(inst.environ, environ)
 
+    def test_get_environment_values_w_scheme_override_untrusted(self):
+        inst = self._makeOne()
+        request = DummyParser()
+        request.headers = {
+            'CONTENT_TYPE': 'abc',
+            'CONTENT_LENGTH': '10',
+            'X_FOO': 'BAR',
+            'X_FORWARDED_PROTO': 'https',
+            'CONNECTION': 'close',
+        }
+        request.query = 'abc'
+        inst.request = request
+        environ = inst.get_environment()
+        self.assertEqual(environ['wsgi.url_scheme'], 'http')
+
+    def test_get_environment_values_w_scheme_override_trusted(self):
+        import sys
+        inst = self._makeOne()
+        inst.channel.addr = ['192.168.1.1']
+        inst.channel.server.adj.trusted_proxy = '192.168.1.1'
+        request = DummyParser()
+        request.headers = {
+            'CONTENT_TYPE': 'abc',
+            'CONTENT_LENGTH': '10',
+            'X_FOO': 'BAR',
+            'X_FORWARDED_PROTO': 'https',
+            'CONNECTION': 'close',
+        }
+        request.query = 'abc'
+        inst.request = request
+        environ = inst.get_environment()
+
+        # nail the keys of environ
+        self.assertEqual(sorted(environ.keys()), [
+            'CONTENT_LENGTH', 'CONTENT_TYPE', 'HTTP_CONNECTION', 'HTTP_X_FOO',
+            'PATH_INFO', 'QUERY_STRING', 'REMOTE_ADDR', 'REQUEST_METHOD',
+            'SCRIPT_NAME', 'SERVER_NAME', 'SERVER_PORT', 'SERVER_PROTOCOL',
+            'SERVER_SOFTWARE', 'wsgi.errors', 'wsgi.file_wrapper', 'wsgi.input',
+            'wsgi.multiprocess', 'wsgi.multithread', 'wsgi.run_once',
+            'wsgi.url_scheme', 'wsgi.version'])
+
+        self.assertEqual(environ['REQUEST_METHOD'], 'GET')
+        self.assertEqual(environ['SERVER_PORT'], '80')
+        self.assertEqual(environ['SERVER_NAME'], 'localhost')
+        self.assertEqual(environ['SERVER_SOFTWARE'], 'waitress')
+        self.assertEqual(environ['SERVER_PROTOCOL'], 'HTTP/1.0')
+        self.assertEqual(environ['SCRIPT_NAME'], '')
+        self.assertEqual(environ['HTTP_CONNECTION'], 'close')
+        self.assertEqual(environ['PATH_INFO'], '/')
+        self.assertEqual(environ['QUERY_STRING'], 'abc')
+        self.assertEqual(environ['REMOTE_ADDR'], '192.168.1.1')
+        self.assertEqual(environ['CONTENT_TYPE'], 'abc')
+        self.assertEqual(environ['CONTENT_LENGTH'], '10')
+        self.assertEqual(environ['HTTP_X_FOO'], 'BAR')
+        self.assertEqual(environ['wsgi.version'], (1, 0))
+        self.assertEqual(environ['wsgi.url_scheme'], 'https')
+        self.assertEqual(environ['wsgi.errors'], sys.stderr)
+        self.assertEqual(environ['wsgi.multithread'], True)
+        self.assertEqual(environ['wsgi.multiprocess'], False)
+        self.assertEqual(environ['wsgi.run_once'], False)
+        self.assertEqual(environ['wsgi.input'], 'stream')
+        self.assertEqual(inst.environ, environ)
+
+    def test_get_environment_values_w_bogus_scheme_override(self):
+        inst = self._makeOne()
+        inst.channel.addr = ['192.168.1.1']
+        inst.channel.server.adj.trusted_proxy = '192.168.1.1'
+        request = DummyParser()
+        request.headers = {
+            'CONTENT_TYPE': 'abc',
+            'CONTENT_LENGTH': '10',
+            'X_FOO': 'BAR',
+            'X_FORWARDED_PROTO': 'http://p02n3e.com?url=http',
+            'CONNECTION': 'close',
+        }
+        request.query = 'abc'
+        inst.request = request
+        self.assertRaises(ValueError, inst.get_environment)
 
 class TestErrorTask(unittest.TestCase):
 
@@ -778,16 +772,9 @@ class TestErrorTask(unittest.TestCase):
             channel = DummyChannel()
         if request is None:
             request = DummyParser()
-            request.error = self._makeDummyError()
+            request.error = DummyError()
         from waitress.task import ErrorTask
         return ErrorTask(channel, request)
-
-    def _makeDummyError(self):
-        from waitress.utilities import Error
-        e = Error('body')
-        e.code = 432
-        e.reason = 'Too Ugly'
-        return e
 
     def test_execute_http_10(self):
         inst = self._makeOne()
@@ -852,12 +839,29 @@ class TestErrorTask(unittest.TestCase):
         self.assertEqual(lines[6], b'body')
         self.assertEqual(lines[7], b'(generated by waitress)')
 
+
+class DummyError(object):
+    code = '432'
+    reason = 'Too Ugly'
+    body = 'body'
+
 class DummyTask(object):
     serviced = False
+    deferred = False
     cancelled = False
+
+    def __init__(self, toraise=None):
+        self.toraise = toraise
 
     def service(self):
         self.serviced = True
+        if self.toraise:
+            raise self.toraise
+
+    def defer(self):
+        self.deferred = True
+        if self.toraise:
+            raise self.toraise
 
     def cancel(self):
         self.cancelled = True
@@ -868,6 +872,7 @@ class DummyAdj(object):
     host = '127.0.0.1'
     port = 80
     url_prefix = ''
+    trusted_proxy = None
 
 class DummyServer(object):
     server_name = 'localhost'
@@ -880,7 +885,7 @@ class DummyChannel(object):
     closed_when_done = False
     adj = DummyAdj()
     creation_time = 0
-    addr = ('127.0.0.1', 39830)
+    addr = ['127.0.0.1']
 
     def __init__(self, server=None):
         if server is None:
@@ -919,8 +924,8 @@ class DummyLogger(object):
     def __init__(self):
         self.logged = []
 
-    def warning(self, msg, *args):
-        self.logged.append(msg % args)
+    def warning(self, msg):
+        self.logged.append(msg)
 
-    def exception(self, msg, *args):
-        self.logged.append(msg % args)
+    def exception(self, msg):
+        self.logged.append(msg)

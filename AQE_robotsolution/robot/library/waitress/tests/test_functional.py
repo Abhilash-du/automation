@@ -2,7 +2,6 @@ import errno
 import logging
 import multiprocessing
 import os
-import signal
 import socket
 import string
 import subprocess
@@ -29,22 +28,7 @@ def start_server(app, svr, queue, **kwargs): # pragma: no cover
     """Run a fixture application.
     """
     logging.getLogger('waitress').addHandler(NullHandler())
-    try_register_coverage()
     svr(app, queue, **kwargs).run()
-
-def try_register_coverage():  # pragma: no cover
-    # Hack around multiprocessing exiting early and not triggering coverage's
-    # atexit handler by trapping the SIGTERM and saving coverage explicitly.
-    if '_COVERAGE_RCFILE' in os.environ:
-        import coverage
-        cov = coverage.Coverage(config_file=os.getenv('_COVERAGE_RCFILE'))
-        cov.start()
-
-        def sigterm(*args):
-            cov.stop()
-            cov.save()
-            sys.exit(0)
-        signal.signal(signal.SIGTERM, sigterm)
 
 class FixtureTcpWSGIServer(server.TcpWSGIServer):
     """A version of TcpWSGIServer that relays back what it's bound to.
@@ -91,7 +75,6 @@ class SubprocessTests(object):
         self.sock.close()
         # This give us one FD back ...
         self.queue.close()
-        self.proc.join()
 
     def assertline(self, line, status, reason, version):
         v, s, r = (x.strip() for x in line.split(None, 2))
@@ -142,7 +125,6 @@ class SleepyThreadTests(TcpTests, unittest.TestCase):
         for proc in procs:
             if proc.returncode is not None: # pragma: no cover
                 proc.terminate()
-            proc.wait()
         # the notsleepy response should always be first returned (it sleeps
         # for 2 seconds, then returns; the notsleepy response should be
         # processed in the meantime)
@@ -155,21 +137,10 @@ class EchoTests(object):
 
     def setUp(self):
         from waitress.tests.fixtureapps import echo
-        self.start_subprocess(
-            echo.app,
-            trusted_proxy='*',
-            trusted_proxy_count=1,
-            trusted_proxy_headers={'x-forwarded-for', 'x-forwarded-proto'},
-            clear_untrusted_proxy_headers=True,
-        )
+        self.start_subprocess(echo.app)
 
     def tearDown(self):
         self.stop_subprocess()
-
-    def _read_echo(self, fp):
-        from waitress.tests.fixtureapps import echo
-        line, headers, body = read_http(fp)
-        return line, headers, echo.parse_response(body)
 
     def test_date_and_server(self):
         to_send = ("GET / HTTP/1.0\n"
@@ -178,13 +149,13 @@ class EchoTests(object):
         self.connect()
         self.sock.send(to_send)
         fp = self.sock.makefile('rb', 0)
-        line, headers, echo = self._read_echo(fp)
+        line, headers, response_body = read_http(fp)
         self.assertline(line, '200', 'OK', 'HTTP/1.0')
         self.assertEqual(headers.get('server'), 'waitress')
         self.assertTrue(headers.get('date'))
 
     def test_bad_host_header(self):
-        # https://corte.si/posts/code/pathod/pythonservers/index.html
+        # http://corte.si/posts/code/pathod/pythonservers/index.html
         to_send = ("GET / HTTP/1.0\n"
                    " Host: 0\n\n")
         to_send = tobytes(to_send)
@@ -204,10 +175,10 @@ class EchoTests(object):
         self.connect()
         self.sock.send(to_send)
         fp = self.sock.makefile('rb', 0)
-        line, headers, echo = self._read_echo(fp)
+        line, headers, response_body = read_http(fp)
         self.assertline(line, '200', 'OK', 'HTTP/1.0')
-        self.assertEqual(echo.content_length, '5')
-        self.assertEqual(echo.body, b'hello')
+        self.assertEqual(headers.get('content-length'), '5')
+        self.assertEqual(response_body, b'hello')
 
     def test_send_empty_body(self):
         to_send = ("GET / HTTP/1.0\n"
@@ -216,26 +187,22 @@ class EchoTests(object):
         self.connect()
         self.sock.send(to_send)
         fp = self.sock.makefile('rb', 0)
-        line, headers, echo = self._read_echo(fp)
+        line, headers, response_body = read_http(fp)
         self.assertline(line, '200', 'OK', 'HTTP/1.0')
-        self.assertEqual(echo.content_length, '0')
-        self.assertEqual(echo.body, b'')
+        self.assertEqual(headers.get('content-length'), '0')
+        self.assertEqual(response_body, b'')
 
     def test_multiple_requests_with_body(self):
-        orig_sock = self.sock
         for x in range(3):
             self.sock = self.create_socket()
             self.test_send_with_body()
             self.sock.close()
-        self.sock = orig_sock
 
     def test_multiple_requests_without_body(self):
-        orig_sock = self.sock
         for x in range(3):
             self.sock = self.create_socket()
             self.test_send_empty_body()
             self.sock.close()
-        self.sock = orig_sock
 
     def test_without_crlf(self):
         data = "Echo\nthis\r\nplease"
@@ -249,11 +216,11 @@ class EchoTests(object):
         self.connect()
         self.sock.send(s)
         fp = self.sock.makefile('rb', 0)
-        line, headers, echo = self._read_echo(fp)
+        line, headers, response_body = read_http(fp)
         self.assertline(line, '200', 'OK', 'HTTP/1.0')
-        self.assertEqual(int(echo.content_length), len(data))
-        self.assertEqual(len(echo.body), len(data))
-        self.assertEqual(echo.body, tobytes(data))
+        self.assertEqual(int(headers['content-length']), len(data))
+        self.assertEqual(len(response_body), len(data))
+        self.assertEqual(response_body, tobytes(data))
 
     def test_large_body(self):
         # 1024 characters.
@@ -267,10 +234,10 @@ class EchoTests(object):
         self.connect()
         self.sock.send(s)
         fp = self.sock.makefile('rb', 0)
-        line, headers, echo = self._read_echo(fp)
+        line, headers, response_body = read_http(fp)
         self.assertline(line, '200', 'OK', 'HTTP/1.0')
-        self.assertEqual(echo.content_length, '1024')
-        self.assertEqual(echo.body, tobytes(body))
+        self.assertEqual(headers.get('content-length'), '1024')
+        self.assertEqual(response_body, tobytes(body))
 
     def test_many_clients(self):
         conns = []
@@ -285,8 +252,6 @@ class EchoTests(object):
             responses.append(response)
         for response in responses:
             response.read()
-        for h in conns:
-            h.close()
 
     def test_chunking_request_without_content(self):
         header = tobytes(
@@ -297,10 +262,10 @@ class EchoTests(object):
         self.sock.send(header)
         self.sock.send(b"0\r\n\r\n")
         fp = self.sock.makefile('rb', 0)
-        line, headers, echo = self._read_echo(fp)
+        line, headers, response_body = read_http(fp)
         self.assertline(line, '200', 'OK', 'HTTP/1.1')
-        self.assertEqual(echo.body, b'')
-        self.assertEqual(echo.content_length, '0')
+        self.assertEqual(response_body, b'')
+        self.assertEqual(headers['content-length'], '0')
         self.assertFalse('transfer-encoding' in headers)
 
     def test_chunking_request_with_content(self):
@@ -318,10 +283,10 @@ class EchoTests(object):
             self.sock.send(control_line)
             self.sock.send(s)
         self.sock.send(b"0\r\n\r\n")
-        line, headers, echo = self._read_echo(fp)
+        line, headers, response_body = read_http(fp)
         self.assertline(line, '200', 'OK', 'HTTP/1.1')
-        self.assertEqual(echo.body, expected)
-        self.assertEqual(echo.content_length, str(len(expected)))
+        self.assertEqual(response_body, expected)
+        self.assertEqual(headers['content-length'], str(len(expected)))
         self.assertFalse('transfer-encoding' in headers)
 
     def test_broken_chunked_encoding(self):
@@ -438,35 +403,11 @@ class EchoTests(object):
         self.assertEqual(int(response.status), 200)
         self.assertEqual(response.getheader('connection'), 'close')
 
-    def test_proxy_headers(self):
-        to_send = (
-            "GET / HTTP/1.0\n"
-            "Content-Length: 0\n"
-            "Host: www.google.com:8080\n"
-            "X-Forwarded-For: 192.168.1.1\n"
-            "X-Forwarded-Proto: https\n"
-            "X-Forwarded-Port: 5000\n\n"
-        )
-        to_send = tobytes(to_send)
-        self.connect()
-        self.sock.send(to_send)
-        fp = self.sock.makefile('rb', 0)
-        line, headers, echo = self._read_echo(fp)
-        self.assertline(line, '200', 'OK', 'HTTP/1.0')
-        self.assertEqual(headers.get('server'), 'waitress')
-        self.assertTrue(headers.get('date'))
-        self.assertIsNone(echo.headers.get('X_FORWARDED_PORT'))
-        self.assertEqual(echo.headers['HOST'], 'www.google.com:8080')
-        self.assertEqual(echo.scheme, 'https')
-        self.assertEqual(echo.remote_addr, '192.168.1.1')
-        self.assertEqual(echo.remote_host, '192.168.1.1')
-
-
 class PipeliningTests(object):
 
     def setUp(self):
         from waitress.tests.fixtureapps import echo
-        self.start_subprocess(echo.app_body_only)
+        self.start_subprocess(echo.app)
 
     def tearDown(self):
         self.stop_subprocess()
@@ -505,7 +446,7 @@ class ExpectContinueTests(object):
 
     def setUp(self):
         from waitress.tests.fixtureapps import echo
-        self.start_subprocess(echo.app_body_only)
+        self.start_subprocess(echo.app)
 
     def tearDown(self):
         self.stop_subprocess()
@@ -1266,24 +1207,6 @@ class FileWrapperTests(object):
 
     def test_notfilelike_http11(self):
         to_send = "GET /notfilelike HTTP/1.1\n\n"
-        to_send = tobytes(to_send)
-
-        self.connect()
-
-        for t in range(0, 2):
-            self.sock.send(to_send)
-            fp = self.sock.makefile('rb', 0)
-            line, headers, response_body = read_http(fp)
-            self.assertline(line, '200', 'OK', 'HTTP/1.1')
-            cl = int(headers['content-length'])
-            self.assertEqual(cl, len(response_body))
-            ct = headers['content-type']
-            self.assertEqual(ct, 'image/jpeg')
-            self.assertTrue(b'\377\330\377' in response_body)
-            # connection has not been closed
-
-    def test_notfilelike_iobase_http11(self):
-        to_send = "GET /notfilelike_iobase HTTP/1.1\n\n"
         to_send = tobytes(to_send)
 
         self.connect()

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="requests" type="library" format="ROBOT" generated="20191018 11:07:50">
-<version>2.22.0</version>
+<keywordspec name="requests" type="library" format="ROBOT" generated="20191113 05:28:11">
+<version>2.11.1</version>
 <scope>global</scope>
 <namedargs>yes</namedargs>
-<doc>Requests HTTP Library
+<doc>Requests HTTP library
 ~~~~~~~~~~~~~~~~~~~~~
 
 Requests is an HTTP library, written in Python, for human beings. Basic GET
@@ -19,7 +19,7 @@ usage:
 ... or POST:
 
    &gt;&gt;&gt; payload = dict(key1='value1', key2='value2')
-   &gt;&gt;&gt; r = requests.post('https://httpbin.org/post', data=payload)
+   &gt;&gt;&gt; r = requests.post('http://httpbin.org/post', data=payload)
    &gt;&gt;&gt; print(r.text)
    {
      ...
@@ -33,17 +33,8 @@ usage:
 The other HTTP methods are supported - see `requests.api`. Full documentation
 is at &lt;http://python-requests.org&gt;.
 
-:copyright: (c) 2017 by Kenneth Reitz.
+:copyright: (c) 2016 by Kenneth Reitz.
 :license: Apache 2.0, see LICENSE for more details.</doc>
-<kw name="Check Compatibility">
-<arguments>
-<arg>urllib3_version</arg>
-<arg>chardet_version</arg>
-</arguments>
-<doc></doc>
-<tags>
-</tags>
-</kw>
 <kw name="Delete">
 <arguments>
 <arg>url</arg>
@@ -67,8 +58,7 @@ is at &lt;http://python-requests.org&gt;.
 <doc>Sends a GET request.
 
 :param url: URL for the new :class:`Request` object.
-:param params: (optional) Dictionary, list of tuples or bytes to send
-    in the query string for the :class:`Request`.
+:param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
 :param \*\*kwargs: Optional arguments that ``request`` takes.
 :return: :class:`Response &lt;Response&gt;` object
 :rtype: requests.Response</doc>
@@ -94,7 +84,7 @@ is at &lt;http://python-requests.org&gt;.
 <arg>url</arg>
 <arg>**kwargs</arg>
 </arguments>
-<doc>Sends an OPTIONS request.
+<doc>Sends a OPTIONS request.
 
 :param url: URL for the new :class:`Request` object.
 :param \*\*kwargs: Optional arguments that ``request`` takes.
@@ -112,9 +102,7 @@ is at &lt;http://python-requests.org&gt;.
 <doc>Sends a PATCH request.
 
 :param url: URL for the new :class:`Request` object.
-:param data: (optional) Dictionary, list of tuples, bytes, or file-like
-    object to send in the body of the :class:`Request`.
-:param json: (optional) json data to send in the body of the :class:`Request`.
+:param data: (optional) Dictionary, bytes, or file-like object to send in the body of the :class:`Request`.
 :param \*\*kwargs: Optional arguments that ``request`` takes.
 :return: :class:`Response &lt;Response&gt;` object
 :rtype: requests.Response</doc>
@@ -131,8 +119,7 @@ is at &lt;http://python-requests.org&gt;.
 <doc>Sends a POST request.
 
 :param url: URL for the new :class:`Request` object.
-:param data: (optional) Dictionary, list of tuples, bytes, or file-like
-    object to send in the body of the :class:`Request`.
+:param data: (optional) Dictionary, bytes, or file-like object to send in the body of the :class:`Request`.
 :param json: (optional) json data to send in the body of the :class:`Request`.
 :param \*\*kwargs: Optional arguments that ``request`` takes.
 :return: :class:`Response &lt;Response&gt;` object
@@ -149,9 +136,7 @@ is at &lt;http://python-requests.org&gt;.
 <doc>Sends a PUT request.
 
 :param url: URL for the new :class:`Request` object.
-:param data: (optional) Dictionary, list of tuples, bytes, or file-like
-    object to send in the body of the :class:`Request`.
-:param json: (optional) json data to send in the body of the :class:`Request`.
+:param data: (optional) Dictionary, bytes, or file-like object to send in the body of the :class:`Request`.
 :param \*\*kwargs: Optional arguments that ``request`` takes.
 :return: :class:`Response &lt;Response&gt;` object
 :rtype: requests.Response</doc>
@@ -168,11 +153,9 @@ is at &lt;http://python-requests.org&gt;.
 
 :param method: method for the new :class:`Request` object.
 :param url: URL for the new :class:`Request` object.
-:param params: (optional) Dictionary, list of tuples or bytes to send
-    in the query string for the :class:`Request`.
-:param data: (optional) Dictionary, list of tuples, bytes, or file-like
-    object to send in the body of the :class:`Request`.
-:param json: (optional) A JSON serializable Python object to send in the body of the :class:`Request`.
+:param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
+:param data: (optional) Dictionary, bytes, or file-like object to send in the body of the :class:`Request`.
+:param json: (optional) json data to send in the body of the :class:`Request`.
 :param headers: (optional) Dictionary of HTTP Headers to send with the :class:`Request`.
 :param cookies: (optional) Dict or CookieJar object to send with the :class:`Request`.
 :param files: (optional) Dictionary of ``'name': file-like-objects`` (or ``{'name': file-tuple}``) for multipart encoding upload.
@@ -181,16 +164,14 @@ is at &lt;http://python-requests.org&gt;.
     defining the content type of the given file and ``custom_headers`` a dict-like object containing additional headers
     to add for the file.
 :param auth: (optional) Auth tuple to enable Basic/Digest/Custom HTTP Auth.
-:param timeout: (optional) How many seconds to wait for the server to send data
+:param timeout: (optional) How long to wait for the server to send data
     before giving up, as a float, or a :ref:`(connect timeout, read
     timeout) &lt;timeouts&gt;` tuple.
 :type timeout: float or tuple
-:param allow_redirects: (optional) Boolean. Enable/disable GET/OPTIONS/POST/PUT/PATCH/DELETE/HEAD redirection. Defaults to ``True``.
+:param allow_redirects: (optional) Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
 :type allow_redirects: bool
 :param proxies: (optional) Dictionary mapping protocol to the URL of the proxy.
-:param verify: (optional) Either a boolean, in which case it controls whether we verify
-        the server's TLS certificate, or a string, in which case it must be a path
-        to a CA bundle to use. Defaults to ``True``.
+:param verify: (optional) whether the SSL cert will be verified. A CA_BUNDLE path can also be provided. Defaults to ``True``.
 :param stream: (optional) if ``False``, the response content will be immediately downloaded.
 :param cert: (optional) if String, path to ssl client cert file (.pem). If Tuple, ('cert', 'key') pair.
 :return: :class:`Response &lt;Response&gt;` object
@@ -199,7 +180,7 @@ is at &lt;http://python-requests.org&gt;.
 Usage::
 
   &gt;&gt;&gt; import requests
-  &gt;&gt;&gt; req = requests.request('GET', 'https://httpbin.org/get')
+  &gt;&gt;&gt; req = requests.request('GET', 'http://httpbin.org/get')
   &lt;Response [200]&gt;</doc>
 <tags>
 </tags>
@@ -208,12 +189,6 @@ Usage::
 <arguments>
 </arguments>
 <doc>Returns a :class:`Session` for context-management.
-
-.. deprecated:: 1.0.0
-
-    This method has been deprecated since version 1.0.0 and is only kept for
-    backwards compatibility. New code should use :class:`~requests.sessions.Session`
-    to create a session. This may be removed at a future date.
 
 :rtype: Session</doc>
 <tags>

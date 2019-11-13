@@ -163,10 +163,8 @@ class IntegerGMP(IntegerBase):
             result = _gmp.gmp_sscanf(tobytes(str(value)), b"%Zd", self._mpz_p)
             if result != 1:
                 raise ValueError("Error converting '%d'" % value)
-        elif isinstance(value, IntegerGMP):
-            _gmp.mpz_init_set(self._mpz_p, value._mpz_p)
         else:
-            raise NotImplementedError
+            _gmp.mpz_init_set(self._mpz_p, value._mpz_p)
 
     # Conversions
     def __int__(self):
@@ -184,14 +182,6 @@ class IntegerGMP(IntegerBase):
 
     def __repr__(self):
         return "Integer(%s)" % str(self)
-
-    # Only Python 2.x
-    def __hex__(self):
-        return hex(int(self))
-
-    # Only Python 3.x
-    def __index__(self):
-        return int(self)
 
     def to_bytes(self, block_size=0):
         """Convert the number into a byte string.
@@ -292,10 +282,7 @@ class IntegerGMP(IntegerBase):
     def __add__(self, term):
         result = IntegerGMP(0)
         if not isinstance(term, IntegerGMP):
-            try:
-                term = IntegerGMP(term)
-            except NotImplementedError:
-                return NotImplemented
+            term = IntegerGMP(term)
         _gmp.mpz_add(result._mpz_p,
                      self._mpz_p,
                      term._mpz_p)
@@ -304,10 +291,7 @@ class IntegerGMP(IntegerBase):
     def __sub__(self, term):
         result = IntegerGMP(0)
         if not isinstance(term, IntegerGMP):
-            try:
-                term = IntegerGMP(term)
-            except NotImplementedError:
-                return NotImplemented
+            term = IntegerGMP(term)
         _gmp.mpz_sub(result._mpz_p,
                      self._mpz_p,
                      term._mpz_p)
@@ -316,10 +300,7 @@ class IntegerGMP(IntegerBase):
     def __mul__(self, term):
         result = IntegerGMP(0)
         if not isinstance(term, IntegerGMP):
-            try:
-                term = IntegerGMP(term)
-            except NotImplementedError:
-                return NotImplemented
+            term = IntegerGMP(term)
         _gmp.mpz_mul(result._mpz_p,
                      self._mpz_p,
                      term._mpz_p)

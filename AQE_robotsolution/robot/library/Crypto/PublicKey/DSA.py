@@ -190,8 +190,7 @@ class DsaKey(object):
         attrs = []
         for k in self._keydata:
             if k == 'p':
-                bits = Integer(self.p).size_in_bits()
-                attrs.append("p(%d)" % (bits,))
+                attrs.append("p(%d)" % (self.size()+1,))
             elif hasattr(self, k):
                 attrs.append(k)
         if self.has_private():
@@ -475,7 +474,7 @@ def generate(bits, randfunc=None, domain=None):
         raise ValueError("Incorrent DSA generator")
 
     # B.1.1
-    c = Integer.random(exact_bits=N + 64, randfunc=randfunc)
+    c = Integer.random(exact_bits=N + 64)
     x = c % (q - 1) + 1 # 1 <= x <= q-1
     y = pow(g, x, p)
 
@@ -661,7 +660,7 @@ def import_key(extern_key, passphrase=None):
             tup = [Integer.from_bytes(keyparts[x]) for x in (4, 3, 1, 2)]
             return construct(tup)
 
-    if len(extern_key) > 0 and bord(extern_key[0]) == 0x30:
+    if bord(extern_key[0]) == 0x30:
         # This is probably a DER encoded key
         return _import_key_der(extern_key, passphrase, None)
 

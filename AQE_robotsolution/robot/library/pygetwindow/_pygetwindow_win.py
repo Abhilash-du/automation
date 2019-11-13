@@ -143,37 +143,14 @@ def _getWindowText(hWnd):
     return stringBuffer.value
 
 
-def getActiveWindow():
-    """Returns a Window object of the currently active Window."""
+def getFocusedWindow():
+    """Returns a Window object of the currently focused Window."""
     hWnd = ctypes.windll.user32.GetForegroundWindow()
     if hWnd == 0:
         # TODO - raise error instead
         return None # Note that this function doesn't use GetLastError().
     else:
         return Win32Window(hWnd)
-
-
-def getActiveWindowTitle():
-    """Returns a string of the title of the currently active Window."""
-    # NOTE - This function isn't threadsafe because it relies on a global variable. I don't use nonlocal because I want this to work on Python 2.
-
-    global activeWindowTitle
-    activeWindowHwnd = ctypes.windll.user32.GetForegroundWindow()
-    if activeWindowHwnd == 0:
-        # TODO - raise error instead
-        return None # Note that this function doesn't use GetLastError().
-
-    def foreach_window(hWnd, lParam):
-        global activeWindowTitle
-        if hWnd == activeWindowHwnd:
-            length = getWindowTextLength(hWnd)
-            buff = ctypes.create_unicode_buffer(length + 1)
-            getWindowText(hWnd, buff, length + 1)
-            activeWindowTitle =  buff.value
-        return True
-    enumWindows(enumWindowsProc(foreach_window), 0)
-
-    return activeWindowTitle
 
 
 def getWindowsAt(x, y):
@@ -277,8 +254,8 @@ class Win32Window():
         ctypes.windll.user32.ShowWindow(self._hWnd, SW_RESTORE)
 
 
-    def activate(self):
-        """Activate this window and make it the foreground window."""
+    def focus(self):
+        """Focus this window and make it the foreground window."""
         result = ctypes.windll.user32.SetForegroundWindow(self._hWnd)
         if result == 0:
             _raiseWithLastError()
@@ -323,9 +300,9 @@ class Win32Window():
         return ctypes.windll.user32.IsZoomed(self._hWnd) != 0
 
     @property
-    def isActive(self):
-        """Returns True if the window is currently the active, foreground window."""
-        return getActiveWindow() == self
+    def isFocused(self):
+        """Returns True if the window is currently the focused, foreground window."""
+        return getFocusedWindow() == self
 
     @property
     def title(self):

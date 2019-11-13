@@ -1,4 +1,3 @@
-import os
 import sys
 import types
 import platform
@@ -8,11 +7,6 @@ try:
     import urlparse
 except ImportError: # pragma: no cover
     from urllib import parse as urlparse
-
-try:
-    import fcntl
-except ImportError: # pragma: no cover
-    fcntl = None # windows
 
 # True if we are running on Python 3.
 PY2 = sys.version_info[0] == 2
@@ -65,6 +59,17 @@ else:
 
     def tobytes(s):
         return s
+
+try:
+    from Queue import (
+        Queue,
+        Empty,
+    )
+except ImportError: # pragma: no cover
+    from queue import (
+        Queue,
+        Empty,
+    )
 
 if PY3: # pragma: no cover
     import builtins
@@ -133,30 +138,3 @@ else: # pragma: no cover
             RuntimeWarning
         )
         HAS_IPV6 = False
-
-def set_nonblocking(fd): # pragma: no cover
-    if PY3 and sys.version_info[1] >= 5:
-        os.set_blocking(fd, False)
-    elif fcntl is None:
-        raise RuntimeError('no fcntl module present')
-    else:
-        flags = fcntl.fcntl(fd, fcntl.F_GETFL, 0)
-        flags = flags | os.O_NONBLOCK
-        fcntl.fcntl(fd, fcntl.F_SETFL, flags)
-
-if PY3:
-    ResourceWarning = ResourceWarning
-else:
-    ResourceWarning = UserWarning
-
-def qualname(cls):
-    if PY3:
-        return cls.__qualname__
-    return cls.__name__
-
-try:
-    import thread
-except ImportError:
-    # py3
-    import _thread as thread
-    

@@ -17,9 +17,6 @@ from ijson.common import JSONError, IncompleteJSONError, ObjectBuilder
 import ijson.backends.python as backend
 
 
-__version__ = '2.4'
-
-
 basic_parse = backend.basic_parse
 parse = backend.parse
 items = backend.items

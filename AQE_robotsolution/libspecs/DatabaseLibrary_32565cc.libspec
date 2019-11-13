@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="DatabaseLibrary" type="library" format="ROBOT" generated="20191018 11:07:23">
+<keywordspec name="DatabaseLibrary" type="library" format="ROBOT" generated="20191113 05:28:05">
 <version></version>
 <scope>global</scope>
 <namedargs>yes</namedargs>
@@ -149,15 +149,6 @@ defaults to `./resources/db.cfg`.
 
 The `dbConfigFile` is useful if you don't want to check into your SCM
 your database credentials.
-
-Example db.cfg file
-| [default]
-| dbapiModuleName=pymysqlforexample
-| dbName=yourdbname
-| dbUsername=yourusername
-| dbPassword=yourpassword
-| dbHost=yourhost
-| dbPort=yourport
 
 Example usage:
 | # explicitly specifies all db property values |
@@ -531,6 +522,7 @@ can be performed.
 Example:
 | # Default behaviour, sets auto commit to true
 | Set Auto Commit
+
 | # Explicitly set the desired state
 | Set Auto Commit | False</doc>
 <tags>

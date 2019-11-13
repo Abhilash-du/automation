@@ -56,19 +56,19 @@ class BadAuthenticationType(AuthenticationException):
     .. versionadded:: 1.1
     """
 
+    #: list of allowed authentication types provided by the server (possible
+    #: values are: ``"none"``, ``"password"``, and ``"publickey"``).
     allowed_types = []
 
-    # TODO 3.0: remove explanation kwarg
     def __init__(self, explanation, types):
-        # TODO 3.0: remove this supercall unless it's actually required for
-        # pickling (after fixing pickling)
-        AuthenticationException.__init__(self, explanation, types)
-        self.explanation = explanation
+        AuthenticationException.__init__(self, explanation)
         self.allowed_types = types
+        # for unpickling
+        self.args = (explanation, types)
 
     def __str__(self):
-        return "{}; allowed types: {!r}".format(
-            self.explanation, self.allowed_types
+        return "{} (allowed_types={!r})".format(
+            SSHException.__str__(self), self.allowed_types
         )
 
 
@@ -80,13 +80,10 @@ class PartialAuthentication(AuthenticationException):
     allowed_types = []
 
     def __init__(self, types):
-        AuthenticationException.__init__(self, types)
+        AuthenticationException.__init__(self, "partial authentication")
         self.allowed_types = types
-
-    def __str__(self):
-        return "Partial authentication; allowed types: {!r}".format(
-            self.allowed_types
-        )
+        # for unpickling
+        self.args = (types,)
 
 
 class ChannelException(SSHException):
@@ -99,12 +96,10 @@ class ChannelException(SSHException):
     """
 
     def __init__(self, code, text):
-        SSHException.__init__(self, code, text)
+        SSHException.__init__(self, text)
         self.code = code
-        self.text = text
-
-    def __str__(self):
-        return "ChannelException({!r}, {!r})".format(self.code, self.text)
+        # for unpickling
+        self.args = (code, text)
 
 
 class BadHostKeyException(SSHException):
@@ -119,20 +114,18 @@ class BadHostKeyException(SSHException):
     """
 
     def __init__(self, hostname, got_key, expected_key):
-        SSHException.__init__(self, hostname, got_key, expected_key)
+        message = (
+            "Host key for server {} does not match: got {}, expected {}"
+        )  # noqa
+        message = message.format(
+            hostname, got_key.get_base64(), expected_key.get_base64()
+        )
+        SSHException.__init__(self, message)
         self.hostname = hostname
         self.key = got_key
         self.expected_key = expected_key
-
-    def __str__(self):
-        msg = (
-            "Host key for server '{}' does not match: got '{}', expected '{}'"
-        )  # noqa
-        return msg.format(
-            self.hostname,
-            self.key.get_base64(),
-            self.expected_key.get_base64(),
-        )
+        # for unpickling
+        self.args = (hostname, got_key, expected_key)
 
 
 class ProxyCommandFailure(SSHException):
@@ -144,14 +137,15 @@ class ProxyCommandFailure(SSHException):
     """
 
     def __init__(self, command, error):
-        SSHException.__init__(self, command, error)
-        self.command = command
-        self.error = error
-
-    def __str__(self):
-        return 'ProxyCommand("{}") returned nonzero exit status: {}'.format(
-            self.command, self.error
+        SSHException.__init__(
+            self,
+            '"ProxyCommand ({})" returned non-zero exit status: {}'.format(
+                command, error
+            ),
         )
+        self.error = error
+        # for unpickling
+        self.args = (command, error)
 
 
 class NoValidConnectionsError(socket.error):

@@ -8,7 +8,6 @@ import abc
 import datetime
 import hashlib
 import ipaddress
-import warnings
 from enum import Enum
 
 from asn1crypto.keys import PublicKeyInfo
@@ -82,7 +81,7 @@ class Extensions(object):
             if ext.oid == oid:
                 return ext
 
-        raise ExtensionNotFound("No {} extension was found".format(oid), oid)
+        raise ExtensionNotFound("No {0} extension was found".format(oid), oid)
 
     def get_extension_for_class(self, extclass):
         if extclass is UnrecognizedExtension:
@@ -97,7 +96,7 @@ class Extensions(object):
                 return ext
 
         raise ExtensionNotFound(
-            "No {} extension was found".format(extclass), extclass.oid
+            "No {0} extension was found".format(extclass), extclass.oid
         )
 
     def __iter__(self):
@@ -111,7 +110,7 @@ class Extensions(object):
 
     def __repr__(self):
         return (
-            "<Extensions({})>".format(self._extensions)
+            "<Extensions({0})>".format(self._extensions)
         )
 
 
@@ -138,7 +137,7 @@ class CRLNumber(object):
         return hash(self.crl_number)
 
     def __repr__(self):
-        return "<CRLNumber({})>".format(self.crl_number)
+        return "<CRLNumber({0})>".format(self.crl_number)
 
     crl_number = utils.read_only_property("_crl_number")
 
@@ -189,21 +188,8 @@ class AuthorityKeyIdentifier(object):
 
     @classmethod
     def from_issuer_subject_key_identifier(cls, ski):
-        if isinstance(ski, SubjectKeyIdentifier):
-            digest = ski.digest
-        else:
-            digest = ski.value.digest
-            warnings.warn(
-                "Extension objects are deprecated as arguments to "
-                "from_issuer_subject_key_identifier and support will be "
-                "removed soon. Please migrate to passing a "
-                "SubjectKeyIdentifier directly.",
-                utils.DeprecatedIn27,
-                stacklevel=2,
-            )
-
         return cls(
-            key_identifier=digest,
+            key_identifier=ski.value.digest,
             authority_cert_issuer=None,
             authority_cert_serial_number=None
         )
@@ -296,7 +282,7 @@ class AuthorityInformationAccess(object):
         return len(self._descriptions)
 
     def __repr__(self):
-        return "<AuthorityInformationAccess({})>".format(self._descriptions)
+        return "<AuthorityInformationAccess({0})>".format(self._descriptions)
 
     def __eq__(self, other):
         if not isinstance(other, AuthorityInformationAccess):
@@ -443,7 +429,7 @@ class CRLDistributionPoints(object):
         return len(self._distribution_points)
 
     def __repr__(self):
-        return "<CRLDistributionPoints({})>".format(self._distribution_points)
+        return "<CRLDistributionPoints({0})>".format(self._distribution_points)
 
     def __eq__(self, other):
         if not isinstance(other, CRLDistributionPoints):
@@ -484,7 +470,7 @@ class FreshestCRL(object):
         return len(self._distribution_points)
 
     def __repr__(self):
-        return "<FreshestCRL({})>".format(self._distribution_points)
+        return "<FreshestCRL({0})>".format(self._distribution_points)
 
     def __eq__(self, other):
         if not isinstance(other, FreshestCRL):
@@ -690,7 +676,7 @@ class CertificatePolicies(object):
         return len(self._policies)
 
     def __repr__(self):
-        return "<CertificatePolicies({})>".format(self._policies)
+        return "<CertificatePolicies({0})>".format(self._policies)
 
     def __eq__(self, other):
         if not isinstance(other, CertificatePolicies):
@@ -851,7 +837,7 @@ class ExtendedKeyUsage(object):
         return len(self._usages)
 
     def __repr__(self):
-        return "<ExtendedKeyUsage({})>".format(self._usages)
+        return "<ExtendedKeyUsage({0})>".format(self._usages)
 
     def __eq__(self, other):
         if not isinstance(other, ExtendedKeyUsage):
@@ -870,40 +856,10 @@ class ExtendedKeyUsage(object):
 class OCSPNoCheck(object):
     oid = ExtensionOID.OCSP_NO_CHECK
 
-    def __eq__(self, other):
-        if not isinstance(other, OCSPNoCheck):
-            return NotImplemented
-
-        return True
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(OCSPNoCheck)
-
-    def __repr__(self):
-        return "<OCSPNoCheck()>"
-
 
 @utils.register_interface(ExtensionType)
 class PrecertPoison(object):
     oid = ExtensionOID.PRECERT_POISON
-
-    def __eq__(self, other):
-        if not isinstance(other, PrecertPoison):
-            return NotImplemented
-
-        return True
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(PrecertPoison)
-
-    def __repr__(self):
-        return "<PrecertPoison()>"
 
 
 @utils.register_interface(ExtensionType)
@@ -1236,7 +1192,7 @@ class GeneralNames(object):
         return list(objs)
 
     def __repr__(self):
-        return "<GeneralNames({})>".format(self._general_names)
+        return "<GeneralNames({0})>".format(self._general_names)
 
     def __eq__(self, other):
         if not isinstance(other, GeneralNames):
@@ -1271,7 +1227,7 @@ class SubjectAlternativeName(object):
         return self._general_names.get_values_for_type(type)
 
     def __repr__(self):
-        return "<SubjectAlternativeName({})>".format(self._general_names)
+        return "<SubjectAlternativeName({0})>".format(self._general_names)
 
     def __eq__(self, other):
         if not isinstance(other, SubjectAlternativeName):
@@ -1306,7 +1262,7 @@ class IssuerAlternativeName(object):
         return self._general_names.get_values_for_type(type)
 
     def __repr__(self):
-        return "<IssuerAlternativeName({})>".format(self._general_names)
+        return "<IssuerAlternativeName({0})>".format(self._general_names)
 
     def __eq__(self, other):
         if not isinstance(other, IssuerAlternativeName):
@@ -1341,7 +1297,7 @@ class CertificateIssuer(object):
         return self._general_names.get_values_for_type(type)
 
     def __repr__(self):
-        return "<CertificateIssuer({})>".format(self._general_names)
+        return "<CertificateIssuer({0})>".format(self._general_names)
 
     def __eq__(self, other):
         if not isinstance(other, CertificateIssuer):
@@ -1370,7 +1326,7 @@ class CRLReason(object):
         self._reason = reason
 
     def __repr__(self):
-        return "<CRLReason(reason={})>".format(self._reason)
+        return "<CRLReason(reason={0})>".format(self._reason)
 
     def __eq__(self, other):
         if not isinstance(other, CRLReason):
@@ -1398,7 +1354,7 @@ class InvalidityDate(object):
         self._invalidity_date = invalidity_date
 
     def __repr__(self):
-        return "<InvalidityDate(invalidity_date={})>".format(
+        return "<InvalidityDate(invalidity_date={0})>".format(
             self._invalidity_date
         )
 
@@ -1444,7 +1400,7 @@ class PrecertificateSignedCertificateTimestamps(object):
 
     def __repr__(self):
         return (
-            "<PrecertificateSignedCertificateTimestamps({})>".format(
+            "<PrecertificateSignedCertificateTimestamps({0})>".format(
                 list(self)
             )
         )

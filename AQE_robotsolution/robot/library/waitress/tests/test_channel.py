@@ -20,29 +20,23 @@ class TestHTTPChannel(unittest.TestCase):
     def test_ctor(self):
         inst, _, map = self._makeOneWithMap()
         self.assertEqual(inst.addr, '127.0.0.1')
-        self.assertEqual(inst.sendbuf_len, 2048)
         self.assertEqual(map[100], inst)
 
     def test_total_outbufs_len_an_outbuf_size_gt_sys_maxint(self):
         from waitress.compat import MAXINT
         inst, _, map = self._makeOneWithMap()
-        class DummyBuffer(object):
-            chunks = []
-            def append(self, data):
-                self.chunks.append(data)
-        class DummyData(object):
+        class DummyHugeBuffer(object):
             def __len__(self):
-                return MAXINT
-        inst.total_outbufs_len = 1
-        inst.outbufs = [DummyBuffer()]
-        inst.write_soon(DummyData())
+                return MAXINT + 1
+        inst.outbufs = [DummyHugeBuffer()]
+        result = inst.total_outbufs_len()
         # we are testing that this method does not raise an OverflowError
         # (see https://github.com/Pylons/waitress/issues/47)
-        self.assertEqual(inst.total_outbufs_len, MAXINT+1)
+        self.assertEqual(result, MAXINT+1)
 
     def test_writable_something_in_outbuf(self):
         inst, sock, map = self._makeOneWithMap()
-        inst.total_outbufs_len = 3
+        inst.outbufs[0].append(b'abc')
         self.assertTrue(inst.writable())
 
     def test_writable_nothing_in_outbuf(self):
@@ -71,7 +65,6 @@ class TestHTTPChannel(unittest.TestCase):
         inst, sock, map = self._makeOneWithMap()
         inst.requests = []
         inst.outbufs = [DummyBuffer(b'abc')]
-        inst.total_outbufs_len = len(inst.outbufs[0])
         inst.last_activity = 0
         result = inst.handle_write()
         self.assertEqual(result, None)
@@ -84,7 +77,6 @@ class TestHTTPChannel(unittest.TestCase):
         inst.requests = []
         outbuf = DummyBuffer(b'abc', socket.error)
         inst.outbufs = [outbuf]
-        inst.total_outbufs_len = len(outbuf)
         inst.last_activity = 0
         inst.logger = DummyLogger()
         result = inst.handle_write()
@@ -99,7 +91,6 @@ class TestHTTPChannel(unittest.TestCase):
         inst.requests = []
         outbuf = DummyBuffer(b'abc', IOError)
         inst.outbufs = [outbuf]
-        inst.total_outbufs_len = len(outbuf)
         inst.last_activity = 0
         inst.logger = DummyLogger()
         result = inst.handle_write()
@@ -123,11 +114,24 @@ class TestHTTPChannel(unittest.TestCase):
         self.assertEqual(inst.last_activity, 0)
         self.assertTrue(outbuf.closed)
 
+    def test_handle_write_no_requests_force_flush(self):
+        inst, sock, map = self._makeOneWithMap()
+        inst.requests = [True]
+        inst.outbufs = [DummyBuffer(b'abc')]
+        inst.will_close = False
+        inst.force_flush = True
+        inst.last_activity = 0
+        result = inst.handle_write()
+        self.assertEqual(result, None)
+        self.assertEqual(inst.will_close, False)
+        self.assertTrue(inst.outbuf_lock.acquired)
+        self.assertEqual(inst.force_flush, False)
+        self.assertEqual(sock.sent, b'abc')
+
     def test_handle_write_no_requests_outbuf_gt_send_bytes(self):
         inst, sock, map = self._makeOneWithMap()
         inst.requests = [True]
         inst.outbufs = [DummyBuffer(b'abc')]
-        inst.total_outbufs_len = len(inst.outbufs[0])
         inst.adj.send_bytes = 2
         inst.will_close = False
         inst.last_activity = 0
@@ -141,7 +145,6 @@ class TestHTTPChannel(unittest.TestCase):
         inst, sock, map = self._makeOneWithMap()
         outbuf = DummyBuffer(b'abc')
         inst.outbufs = [outbuf]
-        inst.total_outbufs_len = len(outbuf)
         inst.will_close = False
         inst.close_when_flushed = True
         inst.last_activity = 0
@@ -222,80 +225,6 @@ class TestHTTPChannel(unittest.TestCase):
         self.assertEqual(outbufs[1], wrapper)
         self.assertEqual(outbufs[2].__class__.__name__, 'OverflowableBuffer')
 
-    def test_write_soon_disconnected(self):
-        from waitress.channel import ClientDisconnected
-        inst, sock, map = self._makeOneWithMap()
-        inst.connected = False
-        self.assertRaises(ClientDisconnected, lambda: inst.write_soon(b'stuff'))
-
-    def test_write_soon_disconnected_while_over_watermark(self):
-        from waitress.channel import ClientDisconnected
-        inst, sock, map = self._makeOneWithMap()
-        def dummy_flush():
-            inst.connected = False
-        inst._flush_outbufs_below_high_watermark = dummy_flush
-        self.assertRaises(ClientDisconnected, lambda: inst.write_soon(b'stuff'))
-
-    def test_write_soon_rotates_outbuf_on_overflow(self):
-        inst, sock, map = self._makeOneWithMap()
-        inst.adj.outbuf_high_watermark = 3
-        inst.current_outbuf_count = 4
-        wrote = inst.write_soon(b'xyz')
-        self.assertEqual(wrote, 3)
-        self.assertEqual(len(inst.outbufs), 2)
-        self.assertEqual(inst.outbufs[0].get(), b'')
-        self.assertEqual(inst.outbufs[1].get(), b'xyz')
-
-    def test_write_soon_waits_on_backpressure(self):
-        inst, sock, map = self._makeOneWithMap()
-        inst.adj.outbuf_high_watermark = 3
-        inst.total_outbufs_len = 4
-        inst.current_outbuf_count = 4
-        class Lock(DummyLock):
-            def wait(self):
-                inst.total_outbufs_len = 0
-                super(Lock, self).wait()
-        inst.outbuf_lock = Lock()
-        wrote = inst.write_soon(b'xyz')
-        self.assertEqual(wrote, 3)
-        self.assertEqual(len(inst.outbufs), 2)
-        self.assertEqual(inst.outbufs[0].get(), b'')
-        self.assertEqual(inst.outbufs[1].get(), b'xyz')
-        self.assertTrue(inst.outbuf_lock.waited)
-
-    def test_handle_write_notify_after_flush(self):
-        inst, sock, map = self._makeOneWithMap()
-        inst.requests = [True]
-        inst.outbufs = [DummyBuffer(b'abc')]
-        inst.total_outbufs_len = len(inst.outbufs[0])
-        inst.adj.send_bytes = 1
-        inst.adj.outbuf_high_watermark = 5
-        inst.will_close = False
-        inst.last_activity = 0
-        result = inst.handle_write()
-        self.assertEqual(result, None)
-        self.assertEqual(inst.will_close, False)
-        self.assertTrue(inst.outbuf_lock.acquired)
-        self.assertTrue(inst.outbuf_lock.notified)
-        self.assertEqual(sock.sent, b'abc')
-
-    def test_handle_write_no_notify_after_flush(self):
-        inst, sock, map = self._makeOneWithMap()
-        inst.requests = [True]
-        inst.outbufs = [DummyBuffer(b'abc')]
-        inst.total_outbufs_len = len(inst.outbufs[0])
-        inst.adj.send_bytes = 1
-        inst.adj.outbuf_high_watermark = 2
-        sock.send = lambda x: False
-        inst.will_close = False
-        inst.last_activity = 0
-        result = inst.handle_write()
-        self.assertEqual(result, None)
-        self.assertEqual(inst.will_close, False)
-        self.assertTrue(inst.outbuf_lock.acquired)
-        self.assertFalse(inst.outbuf_lock.notified)
-        self.assertEqual(sock.sent, b'')
-
     def test__flush_some_empty_outbuf(self):
         inst, sock, map = self._makeOneWithMap()
         result = inst._flush_some()
@@ -304,7 +233,6 @@ class TestHTTPChannel(unittest.TestCase):
     def test__flush_some_full_outbuf_socket_returns_nonzero(self):
         inst, sock, map = self._makeOneWithMap()
         inst.outbufs[0].append(b'abc')
-        inst.total_outbufs_len = sum(len(x) for x in inst.outbufs)
         result = inst._flush_some()
         self.assertEqual(result, True)
 
@@ -312,7 +240,6 @@ class TestHTTPChannel(unittest.TestCase):
         inst, sock, map = self._makeOneWithMap()
         sock.send = lambda x: False
         inst.outbufs[0].append(b'abc')
-        inst.total_outbufs_len = sum(len(x) for x in inst.outbufs)
         result = inst._flush_some()
         self.assertEqual(result, False)
 
@@ -321,7 +248,6 @@ class TestHTTPChannel(unittest.TestCase):
         sock.send = lambda x: len(x)
         buffer = DummyBuffer(b'abc')
         inst.outbufs.append(buffer)
-        inst.total_outbufs_len = sum(len(x) for x in inst.outbufs)
         result = inst._flush_some()
         self.assertEqual(result, True)
         self.assertEqual(buffer.skipped, 3)
@@ -332,7 +258,6 @@ class TestHTTPChannel(unittest.TestCase):
         sock.send = lambda x: len(x)
         buffer = DummyBuffer(b'abc')
         inst.outbufs.append(buffer)
-        inst.total_outbufs_len = sum(len(x) for x in inst.outbufs)
         inst.logger = DummyLogger()
         def doraise():
             raise NotImplementedError
@@ -519,7 +444,7 @@ class TestHTTPChannel(unittest.TestCase):
         inst.requests = []
         inst.service()
         self.assertEqual(inst.requests, [])
-        self.assertTrue(inst.server.trigger_pulled)
+        self.assertTrue(inst.force_flush)
         self.assertTrue(inst.last_activity)
 
     def test_service_with_one_request(self):
@@ -570,7 +495,7 @@ class TestHTTPChannel(unittest.TestCase):
         self.assertTrue(request.serviced)
         self.assertEqual(inst.requests, [])
         self.assertEqual(len(inst.logger.exceptions), 1)
-        self.assertTrue(inst.server.trigger_pulled)
+        self.assertTrue(inst.force_flush)
         self.assertTrue(inst.last_activity)
         self.assertFalse(inst.will_close)
         self.assertEqual(inst.error_task_class.serviced, True)
@@ -589,7 +514,7 @@ class TestHTTPChannel(unittest.TestCase):
         self.assertTrue(request.serviced)
         self.assertEqual(inst.requests, [])
         self.assertEqual(len(inst.logger.exceptions), 1)
-        self.assertTrue(inst.server.trigger_pulled)
+        self.assertTrue(inst.force_flush)
         self.assertTrue(inst.last_activity)
         self.assertTrue(inst.close_when_flushed)
         self.assertEqual(inst.error_task_class.serviced, False)
@@ -610,7 +535,7 @@ class TestHTTPChannel(unittest.TestCase):
         self.assertFalse(inst.will_close)
         self.assertEqual(inst.requests, [])
         self.assertEqual(len(inst.logger.exceptions), 1)
-        self.assertTrue(inst.server.trigger_pulled)
+        self.assertTrue(inst.force_flush)
         self.assertTrue(inst.last_activity)
         self.assertEqual(inst.error_task_class.serviced, True)
         self.assertTrue(request.closed)
@@ -628,57 +553,9 @@ class TestHTTPChannel(unittest.TestCase):
         self.assertTrue(request.serviced)
         self.assertEqual(inst.requests, [])
         self.assertEqual(len(inst.logger.exceptions), 1)
-        self.assertTrue(inst.server.trigger_pulled)
+        self.assertTrue(inst.force_flush)
         self.assertTrue(inst.last_activity)
         self.assertTrue(inst.close_when_flushed)
-        self.assertTrue(request.closed)
-
-    def test_service_with_request_raises_disconnect(self):
-        from waitress.channel import ClientDisconnected
-
-        inst, sock, map = self._makeOneWithMap()
-        inst.adj.expose_tracebacks = False
-        inst.server = DummyServer()
-        request = DummyRequest()
-        inst.requests = [request]
-        inst.task_class = DummyTaskClass(ClientDisconnected)
-        inst.error_task_class = DummyTaskClass()
-        inst.logger = DummyLogger()
-        inst.service()
-        self.assertTrue(request.serviced)
-        self.assertEqual(inst.requests, [])
-        self.assertEqual(len(inst.logger.infos), 1)
-        self.assertTrue(inst.server.trigger_pulled)
-        self.assertTrue(inst.last_activity)
-        self.assertFalse(inst.will_close)
-        self.assertEqual(inst.error_task_class.serviced, False)
-        self.assertTrue(request.closed)
-
-    def test_service_with_request_error_raises_disconnect(self):
-        from waitress.channel import ClientDisconnected
-
-        inst, sock, map = self._makeOneWithMap()
-        inst.adj.expose_tracebacks = False
-        inst.server = DummyServer()
-        request = DummyRequest()
-        err_request = DummyRequest()
-        inst.requests = [request]
-        inst.parser_class = lambda x: err_request
-        inst.task_class = DummyTaskClass(RuntimeError)
-        inst.task_class.wrote_header = False
-        inst.error_task_class = DummyTaskClass(ClientDisconnected)
-        inst.logger = DummyLogger()
-        inst.service()
-        self.assertTrue(request.serviced)
-        self.assertTrue(err_request.serviced)
-        self.assertEqual(inst.requests, [])
-        self.assertEqual(len(inst.logger.exceptions), 1)
-        self.assertEqual(len(inst.logger.infos), 0)
-        self.assertTrue(inst.server.trigger_pulled)
-        self.assertTrue(inst.last_activity)
-        self.assertFalse(inst.will_close)
-        self.assertEqual(inst.task_class.serviced, True)
-        self.assertEqual(inst.error_task_class.serviced, True)
         self.assertTrue(request.closed)
 
     def test_cancel_no_requests(self):
@@ -692,6 +569,10 @@ class TestHTTPChannel(unittest.TestCase):
         inst.requests = [None]
         inst.cancel()
         self.assertEqual(inst.requests, [])
+
+    def test_defer(self):
+        inst, sock, map = self._makeOneWithMap()
+        self.assertEqual(inst.defer(), None)
 
 class DummySock(object):
     blocking = False
@@ -709,9 +590,6 @@ class DummySock(object):
     def getpeername(self):
         return '127.0.0.1'
 
-    def getsockopt(self, level, option):
-        return 2048
-
     def close(self):
         self.closed = True
 
@@ -720,7 +598,6 @@ class DummySock(object):
         return len(data)
 
 class DummyLock(object):
-    notified = False
 
     def __init__(self, acquirable=True):
         self.acquirable = acquirable
@@ -732,12 +609,6 @@ class DummyLock(object):
 
     def release(self):
         self.released = True
-
-    def notify(self):
-        self.notified = True
-
-    def wait(self):
-        self.waited = True
 
     def __exit__(self, type, val, traceback):
         self.acquire(True)
@@ -770,14 +641,13 @@ class DummyBuffer(object):
 
 class DummyAdjustments(object):
     outbuf_overflow = 1048576
-    outbuf_high_watermark = 1048576
     inbuf_overflow = 512000
     cleanup_interval = 900
+    send_bytes = 9000
     url_scheme = 'http'
     channel_timeout = 300
     log_socket_errors = True
     recv_bytes = 8192
-    send_bytes = 1
     expose_tracebacks = True
     ident = 'waitress'
     max_request_header_size = 10000
@@ -829,11 +699,6 @@ class DummyLogger(object):
 
     def __init__(self):
         self.exceptions = []
-        self.infos = []
-        self.warnings = []
-
-    def info(self, msg):
-        self.infos.append(msg)
 
     def exception(self, msg):
         self.exceptions.append(msg)

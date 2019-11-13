@@ -190,7 +190,7 @@ class RelativeDistinguishedName(object):
         return len(self._attributes)
 
     def __repr__(self):
-        return "<RelativeDistinguishedName({})>".format(self.rfc4514_string())
+        return "<RelativeDistinguishedName({0})>".format(self.rfc4514_string())
 
 
 class Name(object):
@@ -253,7 +253,4 @@ class Name(object):
         return sum(len(rdn) for rdn in self._attributes)
 
     def __repr__(self):
-        if six.PY2:
-            return "<Name({})>".format(self.rfc4514_string().encode('utf8'))
-        else:
-            return "<Name({})>".format(self.rfc4514_string())
+        return "<Name({0})>".format(self.rfc4514_string())

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="ScreenCapLibrary" type="library" format="ROBOT" generated="20191018 11:07:58">
-<version>1.3.0</version>
+<keywordspec name="ScreenCapLibrary" type="library" format="ROBOT" generated="20191113 05:28:13">
+<version>1.2.0</version>
 <scope>test case</scope>
 <namedargs>yes</namedargs>
 <doc>Test Library for taking screenshots on the machine where tests are run.
@@ -22,10 +22,6 @@ For taking screenshots the following modules are used:
 - [https://pillow.readthedocs.io | Pillow] used on top of ``mss`` in order to save the screenshots in JPG/JPEG/WebP format.
 
 - [http://pygtk.org/ | PyGTK] is an alternative to ``mss`` for taking screenshots when using VNC.
-
-
-For video recording, [https://github.com/skvark/opencv-python/blob/master/README.md | OpenCV-Python] is used and
-the output file is in WebM format.
 
 = Where screenshots are saved =
 
@@ -73,7 +69,6 @@ False examples:
 <arg>format=png</arg>
 <arg>quality=50</arg>
 <arg>delay=0</arg>
-<arg>fps=8</arg>
 </arguments>
 <doc>``screenshot_module`` specifies the module or tool to use when taking screenshots using this library.
 If no tool or module is specified, ``mss`` will be used by default. For running
@@ -118,83 +113,35 @@ The directory can also be set in `importing`.</doc>
 <tags>
 </tags>
 </kw>
-<kw name="Start Gif Recording">
+<kw name="Take Gif">
 <arguments>
 <arg>name=screenshot</arg>
-<arg>size_percentage=0.5</arg>
-<arg>embed=True</arg>
+<arg>duration=10</arg>
+<arg>frame_time=100</arg>
+<arg>size_percentage=0.25</arg>
+<arg>embed=None</arg>
 <arg>embed_width=800px</arg>
 </arguments>
-<doc>Starts the recording of a GIF in the background with the specified ``name``.
-The recording can be stopped by calling the `Stop Gif Recording` keyword.
+<doc>Takes a GIF with the specified ``name``.
 
 ``name`` specifies the name by which the screenshot will be saved.
+
+``duration`` specifies the time (seconds) in which the screen will be captured.
+Default value for this parameter is 10.
+
+``frame_time`` When replaying a GIF this parameter indicates how much time (milliseconds)
+will pass until switching to another frame of the GIF.
 
 ``size_percentage`` is used to reduce the size of the GIFs a resize of the
 screencaptures. It will specify how much this reduction is with respect to
 screen resolution. By default this parameter is set to resize the images to
-0.5 of the screen resolution.
+0.25 of the screen resolution.
 
 ``embed`` specifies if the screenshot should be embedded in the log file
 or not. See `Boolean arguments` section for more details.
 
 ``embed_width`` specifies the size of the screenshot that is
-embedded in the log file.
-
-Examples:
-| `Start Gif Recording` |            |  # Starts the GIF recording in background |
-| `Sleep`               | 10 seconds |  # Here should be the actions that will be recorded |
-| `Stop Gif Recording`  |            |  # Will create the GIF containing the screen recording         since `Start Gif Recording` was called. |
-
-*Note:* Recommended GIF duration is 100 seconds or lower depending on system memory.</doc>
-<tags>
-</tags>
-</kw>
-<kw name="Start Video Recording">
-<arguments>
-<arg>name=recording</arg>
-<arg>fps=8</arg>
-<arg>embed=True</arg>
-<arg>embed_width=800px</arg>
-</arguments>
-<doc>Starts the recording of a video in the background with the specified ``name``.
-The recording can be stopped by calling the `Stop Video Recording` keyword.
-
-``name`` specifies the name by which the record will be saved.
-
-``fps`` specifies the frame rate at which the video is displayed.
-By default frame rate is 8.
-
-``embed`` specifies if the record should be embedded in the log file
-or not. See `Boolean arguments` section for more details.
-
-``embed_width`` specifies the size of the video record that is
-embedded in the log file.
-
-Examples:
-| `Start Video Recording` |            |  # Starts the video recording in background |
-| `Sleep`                 | 10 seconds |  # Here should be the actions that will be recorded |
-| `Stop Video Recording`  |            |  # Will create the video containing the screen recording         since `Start Video Recording` was called. |
-
-*Note:* Be aware that during recording the number of the collected frames are dependent on the
-performance of your system. Check different values for ``fps`` to find optimal results. (e.g.
-for a 15 seconds recording the output might be a 2 second video with 30 fps).</doc>
-<tags>
-</tags>
-</kw>
-<kw name="Stop Gif Recording">
-<arguments>
-</arguments>
-<doc>Stops the GIF recording and generates the file. If ``embed`` argument was set to ``True`` the
-GIF will be displayed in the log file.</doc>
-<tags>
-</tags>
-</kw>
-<kw name="Stop Video Recording">
-<arguments>
-</arguments>
-<doc>Stops the video recording and generates the file in WebM format. If ``embed`` argument
-was set to ``True`` the video will be displayed in the log file.</doc>
+embedded in the log file.</doc>
 <tags>
 </tags>
 </kw>
@@ -205,6 +152,8 @@ was set to ``True`` the video will be displayed in the log file.</doc>
 <arg>quality=None</arg>
 <arg>screenshot_number=2</arg>
 <arg>delay_time=0</arg>
+<arg>embed=None</arg>
+<arg>embed_width=800px</arg>
 </arguments>
 <doc>Takes the specified number of screenshots in the specified format
 at library import and embeds it into the log file (PNG by default).
@@ -217,7 +166,13 @@ By default this number is 2.
 
 ``delay_time`` specifies the waiting time before taking another
 screenshot. See `Time format` section for more information. By
-default the delay time is 0.</doc>
+default the delay time  is 0.
+
+``embed`` specifies if the screenshot should be embedded in the log file
+or not. See `Boolean arguments` section for more details.
+
+``embed_width`` specifies the size of the screenshot that is
+embedded in the log file.</doc>
 <tags>
 </tags>
 </kw>
@@ -230,7 +185,7 @@ default the delay time is 0.</doc>
 <arg>top=0</arg>
 <arg>width=700</arg>
 <arg>height=300</arg>
-<arg>embed=True</arg>
+<arg>embed=False</arg>
 <arg>embed_width=800px</arg>
 </arguments>
 <doc>Takes a partial screenshot in the specified format and dimensions at
@@ -288,13 +243,13 @@ it can drastically reduce the file size of the image.
 `Time format` section for more information. By default the delay is 0.
 
 Examples: (LOGDIR is determined automatically by the library)
-| `Take Screenshot` |                  |            | # LOGDIR/screenshot_1.png (index automatically incremented) |
-| `Take Screenshot` | mypic            |            | # LOGDIR/mypic_1.png (index automatically incremented) |
-| `Take Screenshot` | ${TEMPDIR}/mypic |            | # /tmp/mypic_1.png (index automatically incremented) |
-| `Take Screenshot` | pic.jpg          |            | # LOGDIR/pic.jpg (always uses this file) |
-| `Take Screenshot` | images/login.jpg | 300px      | # Specify both name and width. |
-| `Take Screenshot` | width=550px      |            | # Specify only width. |
-| `Take Screenshot` | format=jpg       | quality=15 | # Specify both image format and quality |
+| Take Screenshot |                  |            | # LOGDIR/screenshot_1.png (index automatically incremented) |
+| Take Screenshot | mypic            |            | # LOGDIR/mypic_1.png (index automatically incremented) |
+| Take Screenshot | ${TEMPDIR}/mypic |            | # /tmp/mypic_1.png (index automatically incremented) |
+| Take Screenshot | pic.jpg          |            | # LOGDIR/pic.jpg (always uses this file) |
+| Take Screenshot | images/login.jpg | 300px      | # Specify both name and width. |
+| Take Screenshot | width=550px      |            | # Specify only width. |
+| Take Screenshot | format=jpg       | quality=15 | # Specify both image format and quality |
 
 The path where the screenshot is saved is returned.</doc>
 <tags>

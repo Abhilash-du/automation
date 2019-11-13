@@ -245,16 +245,16 @@ def get_thread_id():
 def log_to_file(filename, level=DEBUG):
     """send paramiko logs to a logfile,
     if they're not already going somewhere"""
-    logger = logging.getLogger("paramiko")
-    if len(logger.handlers) > 0:
+    l = logging.getLogger("paramiko")
+    if len(l.handlers) > 0:
         return
-    logger.setLevel(level)
+    l.setLevel(level)
     f = open(filename, "a")
-    handler = logging.StreamHandler(f)
+    lh = logging.StreamHandler(f)
     frm = "%(levelname)-.3s [%(asctime)s.%(msecs)03d] thr=%(_threadid)-3d"
     frm += " %(name)s: %(message)s"
-    handler.setFormatter(logging.Formatter(frm, "%Y%m%d-%H:%M:%S"))
-    logger.addHandler(handler)
+    lh.setFormatter(logging.Formatter(frm, "%Y%m%d-%H:%M:%S"))
+    l.addHandler(lh)
 
 
 # make only one filter object, so it doesn't get applied more than once
@@ -268,9 +268,9 @@ _pfilter = PFilter()
 
 
 def get_logger(name):
-    logger = logging.getLogger(name)
-    logger.addFilter(_pfilter)
-    return logger
+    l = logging.getLogger(name)
+    l.addFilter(_pfilter)
+    return l
 
 
 def retry_on_signal(function):

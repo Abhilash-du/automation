@@ -108,7 +108,6 @@ try:
         return x
 
     c_ulonglong = c_ulong
-    c_uint = c_ulong
 
     def c_size_t(x):
         """Convert a Python integer to size_t"""
@@ -165,7 +164,7 @@ except ImportError:
 
     import ctypes
     from ctypes import (CDLL, c_void_p, byref, c_ulong, c_ulonglong, c_size_t,
-                        create_string_buffer, c_ubyte, c_uint)
+                        create_string_buffer, c_ubyte)
     from ctypes.util import find_library
     from ctypes import Array as _Array
 

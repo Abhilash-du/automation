@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="RequestsLibrary" type="library" format="ROBOT" generated="20191018 11:07:53">
+<keywordspec name="RequestsLibrary" type="library" format="ROBOT" generated="20191113 05:28:12">
 <version></version>
 <scope>global</scope>
 <namedargs>yes</namedargs>
@@ -17,93 +17,6 @@ https://github.com/kennethreitz/requests
     | Should Be Equal As Strings  |  ${resp.status_code} | 200 |
     | ${jsondata}  | To Json |  ${resp.content} |
     | Dictionary Should Contain Value | ${jsondata['users'][0]} | Bulkan Savun Evcimen |</doc>
-<kw name="Create Client Cert Session">
-<arguments>
-<arg>alias</arg>
-<arg>url</arg>
-<arg>headers={}</arg>
-<arg>cookies=None</arg>
-<arg>client_certs=None</arg>
-<arg>timeout=None</arg>
-<arg>proxies=None</arg>
-<arg>verify=False</arg>
-<arg>debug=0</arg>
-<arg>max_retries=3</arg>
-<arg>backoff_factor=0.1</arg>
-<arg>disable_warnings=0</arg>
-</arguments>
-<doc>Create Session: create a HTTP session to a server
-
-``url`` Base url of the server
-
-``alias`` Robot Framework alias to identify the session
-
-``headers`` Dictionary of default headers
-
-``client_certs`` ['client certificate', 'client key'] PEM files containing the client key and certificate
-
-``timeout`` Connection timeout
-
-``proxies`` Dictionary that contains proxy urls for HTTP and HTTPS communication
-
-``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
-         Defaults to False.
-
-``debug`` Enable http verbosity option more information
-        https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
-
-``max_retries`` The maximum number of retries each connection should attempt.
-
-``backoff_factor`` The pause between for each retry
-
-``disable_warnings`` Disable requests warning useful when you have large number of testcases</doc>
-<tags>
-</tags>
-</kw>
-<kw name="Create Custom Session">
-<arguments>
-<arg>alias</arg>
-<arg>url</arg>
-<arg>auth</arg>
-<arg>headers={}</arg>
-<arg>cookies=None</arg>
-<arg>timeout=None</arg>
-<arg>proxies=None</arg>
-<arg>verify=False</arg>
-<arg>debug=0</arg>
-<arg>max_retries=3</arg>
-<arg>backoff_factor=0.1</arg>
-<arg>disable_warnings=0</arg>
-</arguments>
-<doc>Create Session: create a HTTP session to a server
-
-``url`` Base url of the server
-
-``alias`` Robot Framework alias to identify the session
-
-``headers`` Dictionary of default headers
-
-``auth`` A Custom Authentication object to be passed on to the reqests library.
-        http://docs.python-requests.org/en/master/user/advanced/#custom-authentication
-
-``timeout`` Connection timeout
-
-``proxies`` Dictionary that contains proxy urls for HTTP and HTTPS communication
-
-``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
-         Defaults to False.
-
-``debug`` Enable http verbosity option more information
-        https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
-
-``max_retries`` The maximum number of retries each connection should attempt.
-
-``backoff_factor`` The pause between for each retry
-
-``disable_warnings`` Disable requests warning useful when you have large number of testcases</doc>
-<tags>
-</tags>
-</kw>
 <kw name="Create Digest Session">
 <arguments>
 <arg>alias</arg>
@@ -121,29 +34,29 @@ https://github.com/kennethreitz/requests
 </arguments>
 <doc>Create Session: create a HTTP session to a server
 
-``url`` Base url of the server
+`url` Base url of the server
 
-``alias`` Robot Framework alias to identify the session
+`alias` Robot Framework alias to identify the session
 
-``headers`` Dictionary of default headers
+`headers` Dictionary of default headers
 
-``auth`` ['DOMAIN', 'username', 'password'] for NTLM Authentication
+`auth` ['DOMAIN', 'username', 'password'] for NTLM Authentication
 
-``timeout`` Connection timeout
+`timeout` Connection timeout
 
-``proxies`` Dictionary that contains proxy urls for HTTP and HTTPS communication
+`proxies` Dictionary that contains proxy urls for HTTP and HTTPS communication
 
-``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+`verify` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
          Defaults to False.
 
-``debug`` Enable http verbosity option more information
+`debug` Enable http verbosity option more information
         https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
 
-``max_retries`` The maximum number of retries each connection should attempt.
+`max_retries` The maximum number of retries each connection should attempt.
 
-``backoff_factor`` The pause between for each retry
+`backoff_factor` The pause between for each retry
 
-``disable_warnings`` Disable requests warning useful when you have large number of testcases</doc>
+`disable_warnings` Disable requests warning useful when you have large number of testcases</doc>
 <tags>
 </tags>
 </kw>
@@ -164,29 +77,29 @@ https://github.com/kennethreitz/requests
 </arguments>
 <doc>Create Session: create a HTTP session to a server
 
-``url`` Base url of the server
+`url` Base url of the server
 
-``alias`` Robot Framework alias to identify the session
+`alias` Robot Framework alias to identify the session
 
-``headers`` Dictionary of default headers
+`headers` Dictionary of default headers
 
-``auth`` ['DOMAIN', 'username', 'password'] for NTLM Authentication
+`auth` ['DOMAIN', 'username', 'password'] for NTLM Authentication
 
-``timeout`` Connection timeout
+`timeout` Connection timeout
 
-``proxies`` Dictionary that contains proxy urls for HTTP and HTTPS communication
+`proxies` Dictionary that contains proxy urls for HTTP and HTTPS communication
 
-``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+`verify` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
          Defaults to False.
 
-``debug`` Enable http verbosity option more information
+`debug` Enable http verbosity option more information
         https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
 
-``max_retries`` The maximum number of retries each connection should attempt.
+`max_retries` The maximum number of retries each connection should attempt.
 
-``backoff_factor`` The pause between for each retry
+`backoff_factor` The pause between for each retry
 
-``disable_warnings`` Disable requests warning useful when you have large number of testcases</doc>
+`disable_warnings` Disable requests warning useful when you have large number of testcases</doc>
 <tags>
 </tags>
 </kw>
@@ -207,29 +120,29 @@ https://github.com/kennethreitz/requests
 </arguments>
 <doc>Create Session: create a HTTP session to a server
 
-``url`` Base url of the server
+`url` Base url of the server
 
-``alias`` Robot Framework alias to identify the session
+`alias` Robot Framework alias to identify the session
 
-``headers`` Dictionary of default headers
+`headers` Dictionary of default headers
 
-``auth`` List of username &amp; password for HTTP Basic Auth
+`auth` List of username &amp; password for HTTP Basic Auth
 
-``timeout`` Connection timeout
+`timeout` Connection timeout
 
-``proxies`` Dictionary that contains proxy urls for HTTP and HTTPS communication
+`proxies` Dictionary that contains proxy urls for HTTP and HTTPS communication
 
-``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+`verify` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
          Defaults to False.
 
-``debug`` Enable http verbosity option more information
+`debug` Enable http verbosity option more information
         https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
 
-``max_retries`` The maximum number of retries each connection should attempt.
+`max_retries` The maximum number of retries each connection should attempt.
 
-``backoff_factor`` The pause between for each retry
+`backoff_factor` The pause between for each retry
 
-``disable_warnings`` Disable requests warning useful when you have large number of testcases</doc>
+`disable_warnings` Disable requests warning useful when you have large number of testcases</doc>
 <tags>
 </tags>
 </kw>
@@ -247,15 +160,13 @@ https://github.com/kennethreitz/requests
 Send a DELETE request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the DELETE request to
+`uri` to send the DELETE request to
 
-``headers`` a dictionary of headers to use with the request
+`headers` a dictionary of headers to use with the request
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -270,8 +181,7 @@ given `alias`
 <arguments>
 <arg>alias</arg>
 <arg>uri</arg>
-<arg>data=None</arg>
-<arg>json=None</arg>
+<arg>data=()</arg>
 <arg>params=None</arg>
 <arg>headers=None</arg>
 <arg>allow_redirects=None</arg>
@@ -280,18 +190,13 @@ given `alias`
 <doc>Send a DELETE request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the DELETE request to
+`uri` to send the DELETE request to
 
-``json`` a value that will be json encoded
-       and sent as request data if data is not specified
+`headers` a dictionary of headers to use with the request
 
-``headers`` a dictionary of headers to use with the request
-
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -309,15 +214,13 @@ given `alias`
 Send a GET request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the GET request to
+`uri` to send the GET request to
 
-``headers`` a dictionary of headers to use with the request
+`headers` a dictionary of headers to use with the request
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -326,7 +229,6 @@ given `alias`
 <arg>alias</arg>
 <arg>uri</arg>
 <arg>headers=None</arg>
-<arg>json=None</arg>
 <arg>params=None</arg>
 <arg>allow_redirects=None</arg>
 <arg>timeout=None</arg>
@@ -334,19 +236,15 @@ given `alias`
 <doc>Send a GET request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the GET request to
+`uri` to send the GET request to
 
-``params`` url parameters to append to the uri
+`params` url parameters to append to the uri
 
-``headers`` a dictionary of headers to use with the request
+`headers` a dictionary of headers to use with the request
 
-``json`` json data to send in the body of the :class:`Request`.
-
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -363,13 +261,11 @@ given `alias`
 Send a HEAD request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the HEAD request to
+`uri` to send the HEAD request to
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``headers`` a dictionary of headers to use with the request</doc>
+`headers` a dictionary of headers to use with the request</doc>
 <tags>
 </tags>
 </kw>
@@ -384,13 +280,11 @@ given `alias`
 <doc>Send a HEAD request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the HEAD request to
+`uri` to send the HEAD request to
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``headers`` a dictionary of headers to use with the request</doc>
+`headers` a dictionary of headers to use with the request</doc>
 <tags>
 </tags>
 </kw>
@@ -403,17 +297,14 @@ given `alias`
 <arg>timeout=None</arg>
 </arguments>
 <doc>**Deprecated- See Options Request now**
-
 Send an OPTIONS request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the OPTIONS request to
+`uri` to send the OPTIONS request to
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``headers`` a dictionary of headers to use with the request</doc>
+`headers` a dictionary of headers to use with the request</doc>
 <tags>
 </tags>
 </kw>
@@ -428,13 +319,11 @@ given `alias`
 <doc>Send an OPTIONS request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the OPTIONS request to
+`uri` to send the OPTIONS request to
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``headers`` a dictionary of headers to use with the request</doc>
+`headers` a dictionary of headers to use with the request</doc>
 <tags>
 </tags>
 </kw>
@@ -453,21 +342,19 @@ given `alias`
 Send a PATCH request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the PATCH request to
+`uri` to send the PATCH request to
 
-``data`` a dictionary of key-value pairs that will be urlencoded
+`data` a dictionary of key-value pairs that will be urlencoded
        and sent as PATCH data
        or binary data that is sent as the raw body content
 
-``headers`` a dictionary of headers to use with the request
+`headers` a dictionary of headers to use with the request
 
-``files`` a dictionary of file names containing file data to PATCH to the server
+`files` a dictionary of file names containing file data to PATCH to the server
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -476,7 +363,6 @@ given `alias`
 <arg>alias</arg>
 <arg>uri</arg>
 <arg>data=None</arg>
-<arg>json=None</arg>
 <arg>params=None</arg>
 <arg>headers=None</arg>
 <arg>files=None</arg>
@@ -486,26 +372,23 @@ given `alias`
 <doc>Send a PATCH request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the PATCH request to
+`uri` to send the PATCH request to
 
-``data`` a dictionary of key-value pairs that will be urlencoded
+`data` a dictionary of key-value pairs that will be urlencoded
        and sent as PATCH data
        or binary data that is sent as the raw body content
 
-``json`` a value that will be json encoded
-       and sent as PATCH data if data is not specified
+`headers` a dictionary of headers to use with the request
 
-``headers`` a dictionary of headers to use with the request
+`files` a dictionary of file names containing file data to PATCH to the server
 
-``files`` a dictionary of file names containing file data to PATCH to the server
+`allow_redirects` requests redirection
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+`params` url parameters to append to the uri
 
-``params`` url parameters to append to the uri
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -524,21 +407,19 @@ given `alias`
 Send a POST request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the GET request to
+`uri` to send the GET request to
 
-``data`` a dictionary of key-value pairs that will be urlencoded
+`data` a dictionary of key-value pairs that will be urlencoded
        and sent as POST data
        or binary data that is sent as the raw body content
 
-``headers`` a dictionary of headers to use with the request
+`headers` a dictionary of headers to use with the request
 
-``files`` a dictionary of file names containing file data to POST to the server
+`files` a dictionary of file names containing file data to POST to the server
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -547,7 +428,6 @@ given `alias`
 <arg>alias</arg>
 <arg>uri</arg>
 <arg>data=None</arg>
-<arg>json=None</arg>
 <arg>params=None</arg>
 <arg>headers=None</arg>
 <arg>files=None</arg>
@@ -557,28 +437,23 @@ given `alias`
 <doc>Send a POST request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the POST request to
+`uri` to send the POST request to
 
-``data`` a dictionary of key-value pairs that will be urlencoded
+`data` a dictionary of key-value pairs that will be urlencoded
        and sent as POST data
        or binary data that is sent as the raw body content
-       or passed as such for multipart form data if ``files`` is also
-          defined
 
-``json`` a value that will be json encoded
-       and sent as POST data if files or data is not specified
+`params` url parameters to append to the uri
 
-``params`` url parameters to append to the uri
+`headers` a dictionary of headers to use with the request
 
-``headers`` a dictionary of headers to use with the request
+`files` a dictionary of file names containing file data to POST to the server
 
-``files`` a dictionary of file names containing file data to POST to the server
+`allow_redirects` requests redirection
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -596,15 +471,13 @@ given `alias`
 Send a PUT request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the PUT request to
+`uri` to send the PUT request to
 
-``headers`` a dictionary of headers to use with the request
+`headers` a dictionary of headers to use with the request
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -613,7 +486,6 @@ given `alias`
 <arg>alias</arg>
 <arg>uri</arg>
 <arg>data=None</arg>
-<arg>json=None</arg>
 <arg>params=None</arg>
 <arg>files=None</arg>
 <arg>headers=None</arg>
@@ -623,24 +495,17 @@ given `alias`
 <doc>Send a PUT request on the session object found using the
 given `alias`
 
-``alias`` that will be used to identify the Session object in the cache
+`alias` that will be used to identify the Session object in the cache
 
-``uri`` to send the PUT request to
+`uri` to send the PUT request to
 
-``data`` a dictionary of key-value pairs that will be urlencoded
-       and sent as PUT data
-       or binary data that is sent as the raw body content
+`headers` a dictionary of headers to use with the request
 
-``json`` a value that will be json encoded
-       and sent as PUT data if data is not specified
+`allow_redirects` requests redirection
 
-``headers`` a dictionary of headers to use with the request
+`params` url parameters to append to the uri
 
-``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
-
-``params`` url parameters to append to the uri
-
-``timeout`` connection timeout</doc>
+`timeout` connection timeout</doc>
 <tags>
 </tags>
 </kw>
@@ -651,23 +516,9 @@ given `alias`
 </arguments>
 <doc>Convert a string to a JSON object
 
-``content`` String content to convert into JSON
+`content` String content to convert into JSON
 
-``pretty_print`` If defined, will output JSON is pretty print format</doc>
-<tags>
-</tags>
-</kw>
-<kw name="Update Session">
-<arguments>
-<arg>alias</arg>
-<arg>headers=None</arg>
-<arg>cookies=None</arg>
-</arguments>
-<doc>Update Session Headers: update a HTTP Session Headers
-
-``alias`` Robot Framework alias to identify the session
-
-``headers`` Dictionary of headers merge into session</doc>
+'pretty_print' If defined, will output JSON is pretty print format</doc>
 <tags>
 </tags>
 </kw>

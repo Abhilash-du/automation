@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="SSHLibrary" type="library" format="ROBOT" generated="20191018 11:08:06">
-<version>3.4.0</version>
+<keywordspec name="SSHLibrary" type="library" format="ROBOT" generated="20191113 05:28:15">
+<version>3.3.0</version>
 <scope>global</scope>
 <namedargs>yes</namedargs>
 <doc>SSHLibrary is a Robot Framework test library for SSH and SFTP.
@@ -129,12 +129,6 @@ operating systems. With Windows remote machines, you need to set this to
 
 Argument ``term_type`` defines the virtual terminal type, and arguments
 ``width`` and ``height`` can be used to control its  virtual size.
-
-=== Escape ansi sequneces ===
-
-Argument ``escape_ansi`` is a parameter used in order to escape ansi
-sequences that appear in the output when the remote machine has
-Windows as operating system.
 
 == Not configurable per connection ==
 
@@ -362,7 +356,6 @@ were considered to be true. Considering ``none`` false is new in Robot Framework
 <arg>height=24</arg>
 <arg>path_separator=/</arg>
 <arg>encoding=UTF-8</arg>
-<arg>escape_ansi=False</arg>
 </arguments>
 <doc>SSHLibrary allows some import time `configuration`.
 
@@ -526,8 +519,6 @@ Example:
 <arg>sudo=False</arg>
 <arg>sudo_password=None</arg>
 <arg>timeout=None</arg>
-<arg>invoke_subsystem=False</arg>
-<arg>forward_agent=False</arg>
 </arguments>
 <doc>Executes ``command`` on the remote machine and returns its outputs.
 
@@ -580,16 +571,7 @@ log level ``INFO``.
 
 If the `timeout` expires before the command is executed, this keyword fails.
 
-``invoke_subsystem`` will request a subsystem on the server, given by the
-``command`` argument. If the server allows it, the channel will then be
-directly connected to the requested subsystem.
-
-``forward_agent`` determines whether to forward the local SSH Agent process to the process being executed. 
-This assumes that there is an agent in use (i.e. `eval $(ssh-agent)`). Setting ``forward_agent`` does not
-work with Jython.
-| `Execute Command` | ssh-add -L | forward_agent=True |
-
-``invoke_subsystem`` and ``forward_agent`` are new in SSHLibrary 3.4.0.</doc>
+``timeout`` argument is new in SSHLibrary 3.2.0.</doc>
 <tags>
 </tags>
 </kw>
@@ -635,7 +617,6 @@ Note that this keyword follows symlinks. Thus the example fails if
 <arg>width=False</arg>
 <arg>height=False</arg>
 <arg>encoding=False</arg>
-<arg>escape_ansi=False</arg>
 </arguments>
 <doc>Returns information about the connection.
 
@@ -936,10 +917,7 @@ respectively.</doc>
 <arguments>
 <arg>username</arg>
 <arg>password</arg>
-<arg>allow_agent=False</arg>
-<arg>look_for_keys=False</arg>
 <arg>delay=0.5 seconds</arg>
-<arg>proxy_cmd=None</arg>
 </arguments>
 <doc>Logs into the SSH server with the given ``username`` and ``password``.
 
@@ -949,17 +927,6 @@ This keyword reads, returns and logs the server output after logging
 in. If the `prompt` is set, everything until the prompt is read.
 Otherwise the output is read using the `Read` keyword with the given
 ``delay``. The output is logged using the default `log level`.
-
-``proxy_cmd`` is used to connect through a SSH proxy.
-
-``allow_agent`` enables the connection to the SSH agent.
-
-``look_for_keys`` enables the searching for discoverable private key files in ``~/.ssh/``.
-
-``allow_agent`` and ``look_for_keys`` arguments are new in SSHLibrary
-3.4.0.
-
-*Note:* ``allow_agent``, ``look_for_keys`` and ``proxy_cmd`` do not work when using Jython.
 
 Example that logs in and returns the output:
 
@@ -971,12 +938,7 @@ Example that logs in and returns everything until the prompt:
 
 | `Open Connection` | linux.server.com | prompt=$         |
 | ${output}=        | `Login`          | johndoe          | secretpasswd |
-| `Should Contain`  | ${output}        | johndoe@linux:~$ |
-
-Example that logs in a remote server (linux.server.com) through a proxy server (proxy.server.com)
-| `Open Connection` | linux.server.com |
-| ${output}=        | `Login`          | johndoe       | secretpasswd |         proxy_cmd=ssh -l user -i keyfile -W linux.server.com:22 proxy.server.com |
-| `Should Contain`  | ${output}        | Last login at |</doc>
+| `Should Contain`  | ${output}        | johndoe@linux:~$ |</doc>
 <tags>
 </tags>
 </kw>
@@ -988,7 +950,6 @@ Example that logs in a remote server (linux.server.com) through a proxy server (
 <arg>allow_agent=False</arg>
 <arg>look_for_keys=False</arg>
 <arg>delay=0.5 seconds</arg>
-<arg>proxy_cmd=None</arg>
 </arguments>
 <doc>Logs into the SSH server using key-based authentication.
 
@@ -1001,8 +962,6 @@ filesystem.
 
 ``password`` is used to unlock the ``keyfile`` if needed. If the keyfile is
 invalid a username-password authentication will be attempted.
-
-``proxy_cmd`` is used to connect through a SSH proxy.
 
 This keyword reads, returns and logs the server output after logging
 in. If the `prompt` is set, everything until the prompt is read.
@@ -1027,7 +986,7 @@ files in ``~/.ssh/``.
 ``allow_agent`` and ``look_for_keys`` arguments are new in SSHLibrary
 3.0.0.
 
-*Note:* ``allow_agent``, ``look_for_keys`` and ``proxy_cmd`` do not work when using Jython.</doc>
+*Note:* ``allow_agent`` and ``look_for_keys`` do not work when using Jython.</doc>
 <tags>
 </tags>
 </kw>
@@ -1044,7 +1003,6 @@ files in ``~/.ssh/``.
 <arg>height=None</arg>
 <arg>path_separator=None</arg>
 <arg>encoding=None</arg>
-<arg>escape_ansi=None</arg>
 </arguments>
 <doc>Opens a new SSH connection to the given ``host`` and ``port``.
 
@@ -1191,8 +1149,7 @@ are supported.
 
 ``mode`` can be used to set the target file permission.
 Numeric values are accepted. The default value is ``0744``
-(``-rwxr--r--``). If None value is provided, setting modes
-will be skipped.
+(``-rwxr--r--``).
 
 ``newline`` can be used to force the line break characters that are
 written to the remote files. Valid values are ``LF`` and ``CRLF``.
@@ -1204,7 +1161,6 @@ the file transfer. See `Transfer files with SCP` for more details.
 Examples:
 | `Put File` | /path/to/*.txt          |
 | `Put File` | /path/to/*.txt          | /home/groups/robot | mode=0770 |
-| `Put File` | /path/to/*.txt          | /home/groups/robot | mode=None |
 | `Put File` | /path/to/*.txt          | newline=CRLF       |
 
 The remote ``destination`` is created as following:
@@ -1437,7 +1393,6 @@ shells` section.</doc>
 <arg>height=None</arg>
 <arg>path_separator=None</arg>
 <arg>encoding=None</arg>
-<arg>escape_ansi=None</arg>
 </arguments>
 <doc>Update the `configuration` of the current connection.
 
@@ -1482,7 +1437,6 @@ Multiple settings are possible. This example updates the
 <arg>height=None</arg>
 <arg>path_separator=None</arg>
 <arg>encoding=None</arg>
-<arg>escape_ansi=None</arg>
 </arguments>
 <doc>Update the default `configuration`.
 
@@ -1521,8 +1475,6 @@ subsequent connections without affecting the existing ones:
 <arg>command</arg>
 <arg>sudo=False</arg>
 <arg>sudo_password=None</arg>
-<arg>invoke_subsystem=False</arg>
-<arg>forward_agent=False</arg>
 </arguments>
 <doc>Starts execution of the ``command`` on the remote machine and returns immediately.
 
@@ -1560,11 +1512,7 @@ same shell. See `interactive shells` section for more information.
 
 This keyword logs the started command with log level ``INFO``.
 
-``invoke_subsystem`` argument behaves similarly as with `Execute Command` keyword.
-
-``forward_agent`` argument behaves similarly as with `Execute Command` keyword.
-
-``invoke_subsystem`` is new in SSHLibrary 3.4.0.</doc>
+``sudo`` and ``sudo_password`` arguments are new in SSHLibrary 3.0.0.</doc>
 <tags>
 </tags>
 </kw>

@@ -4,12 +4,13 @@
 """
 Gives a multi-value dictionary object (MultiDict) plus several wrappers
 """
+from collections import MutableMapping
+
 import binascii
 import warnings
 
 from webob.compat import (
-    MutableMapping,
-    PY2,
+    PY3,
     iteritems_,
     itervalues_,
     url_encode,
@@ -68,7 +69,7 @@ class MultiDict(MutableMapping):
                 'base64' : binascii.a2b_base64,
                 'quoted-printable' : binascii.a2b_qp
                 }
-            if not PY2:
+            if PY3: # pragma: no cover
                 if charset == 'utf8':
                     decode = lambda b: b
                 else:
@@ -81,11 +82,11 @@ class MultiDict(MutableMapping):
             else:
                 value = field.value
                 if transfer_encoding in supported_transfer_encoding:
-                    if not PY2:
+                    if PY3: # pragma: no cover
                         # binascii accepts bytes
                         value = value.encode('utf8')
                     value = supported_transfer_encoding[transfer_encoding](value)
-                    if not PY2:
+                    if PY3: # pragma: no cover
                         # binascii returns bytes
                         value = value.decode('utf8')
                 obj.add(field.name, decode(value))
@@ -248,32 +249,32 @@ class MultiDict(MutableMapping):
     def iterkeys(self):
         for k, v in self._items:
             yield k
-    if PY2:
+    if PY3: # pragma: no cover
+        keys = iterkeys
+    else:
         def keys(self):
             return [k for k, v in self._items]
-    else:
-        keys = iterkeys
 
     __iter__ = iterkeys
 
     def iteritems(self):
         return iter(self._items)
 
-    if PY2:
+    if PY3: # pragma: no cover
+        items = iteritems
+    else:
         def items(self):
             return self._items[:]
-    else:
-        items = iteritems
 
     def itervalues(self):
         for k, v in self._items:
             yield v
 
-    if PY2:
+    if PY3: # pragma: no cover
+        values = itervalues
+    else:
         def values(self):
             return [v for k, v in self._items]
-    else:
-        values = itervalues
 
 _dummy = object()
 
@@ -392,21 +393,21 @@ class NestedMultiDict(MultiDict):
         for d in self.dicts:
             for item in iteritems_(d):
                 yield item
-    if PY2:
+    if PY3: # pragma: no cover
+        items = iteritems
+    else:
         def items(self):
             return list(self.iteritems())
-    else:
-        items = iteritems
 
     def itervalues(self):
         for d in self.dicts:
             for value in itervalues_(d):
                 yield value
-    if PY2:
+    if PY3: # pragma: no cover
+        values = itervalues
+    else:
         def values(self):
             return list(self.itervalues())
-    else:
-        values = itervalues
 
     def __iter__(self):
         for d in self.dicts:
@@ -415,11 +416,11 @@ class NestedMultiDict(MultiDict):
 
     iterkeys = __iter__
 
-    if PY2:
+    if PY3: # pragma: no cover
+        keys = iterkeys
+    else:
         def keys(self):
             return list(self.iterkeys())
-    else:
-        keys = iterkeys
 
 class NoVars(object):
     """
@@ -475,23 +476,23 @@ class NoVars(object):
     def __len__(self):
         return 0
 
+    def __cmp__(self, other):
+        return cmp({}, other)
+
     def iterkeys(self):
         return iter([])
 
-    if PY2:
-        def __cmp__(self, other):
-            return cmp({}, other)
-
+    if PY3: # pragma: no cover
+        keys = iterkeys
+        items = iterkeys
+        values = iterkeys
+    else:
         def keys(self):
             return []
         items = keys
         values = keys
         itervalues = iterkeys
         iteritems = iterkeys
-    else:
-        keys = iterkeys
-        items = iterkeys
-        values = iterkeys
 
     __iter__ = iterkeys
 

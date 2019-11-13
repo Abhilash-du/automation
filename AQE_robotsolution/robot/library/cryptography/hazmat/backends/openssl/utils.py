@@ -64,6 +64,6 @@ def _warn_sign_verify_deprecated():
     warnings.warn(
         "signer and verifier have been deprecated. Please use sign "
         "and verify instead.",
-        utils.PersistentlyDeprecated2017,
+        utils.PersistentlyDeprecated,
         stacklevel=3
     )

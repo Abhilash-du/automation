@@ -1,53 +1,36 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright (C) 2008 John Paulett (john -at- paulett.org)
-# Copyright (C) 2009-2018 David Aguilar (davvid -at- gmail.com)
+# Copyright (C) 2009, 2011, 2013 David Aguilar (davvid -at- gmail.com) and contributors
 # All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 from __future__ import absolute_import, division, unicode_literals
+import base64
 import quopri
 import sys
 
-from . import compat
 from . import util
 from . import tags
 from . import handlers
-from .compat import numeric_types
-from .backend import json
+from .compat import numeric_types, set, unicode
+from .backend import JSONBackend
 
 
 def decode(string, backend=None, context=None, keys=False, reset=True,
-           safe=False, classes=None):
-    """Convert a JSON string into a Python object.
-
-    The keyword argument 'keys' defaults to False.
-    If set to True then jsonpickle will decode non-string dictionary keys
-    into python objects via the jsonpickle protocol.
-
-    The keyword argument 'classes' defaults to None.
-    If set to a single class, or a sequence (list, set, tuple) of classes,
-    then the classes will be made available when constructing objects.  This
-    can be used to give jsonpickle access to local classes that are not
-    available through the global module import scope.
-
-    >>> decode('"my string"') == 'my string'
-    True
-    >>> decode('36')
-    36
-    """
-    backend = backend or json
-    context = context or Unpickler(keys=keys, backend=backend, safe=safe)
-    data = backend.decode(string)
-    return context.restore(data, reset=reset, classes=classes)
+           safe=False):
+    backend = _make_backend(backend)
+    if context is None:
+        context = Unpickler(keys=keys, backend=backend, safe=safe)
+    return context.restore(backend.decode(string), reset=reset)
 
 
-def _safe_hasattr(obj, attr):
-    """Workaround unreliable hasattr() availability on sqlalchemy objects"""
-    try:
-        object.__getattribute__(obj, attr)
-        return True
-    except AttributeError:
-        return False
+def _make_backend(backend):
+    if backend is None:
+        return JSONBackend()
+    else:
+        return backend
 
 
 class _Proxy(object):
@@ -87,7 +70,6 @@ class _Proxy(object):
     def reset(self, instance):
         self.instance = instance
 
-
 class _IDProxy(_Proxy):
     def __init__(self, objs, index):
         self._index = index
@@ -108,7 +90,7 @@ def _obj_setvalue(obj, idx, proxy):
 class Unpickler(object):
 
     def __init__(self, backend=None, keys=False, safe=False):
-        self.backend = backend or json
+        self.backend = _make_backend(backend)
         self.keys = keys
         self.safe = safe
 
@@ -128,10 +110,7 @@ class Unpickler(object):
         self._objs = []
         self._proxies = []
 
-        # Extra local classes not accessible globally
-        self._classes = {}
-
-    def restore(self, obj, reset=True, classes=None):
+    def restore(self, obj, reset=True):
         """Restores a flattened object to its original python state.
 
         Simply returns any of the basic builtin types
@@ -145,24 +124,10 @@ class Unpickler(object):
         """
         if reset:
             self.reset()
-        if classes:
-            self.register_classes(classes)
         value = self._restore(obj)
         if reset:
             self._swap_proxies()
         return value
-
-    def register_classes(self, classes):
-        """Register one or more classes
-
-        :param classes: sequence of classes or a single class to register
-
-        """
-        if isinstance(classes, (list, tuple, set)):
-            for cls in classes:
-                self.register_classes(cls)
-        else:
-            self._classes[util.importable_name(classes)] = classes
 
     def _swap_proxies(self):
         """Replace proxies with their corresponding instances"""
@@ -173,8 +138,6 @@ class Unpickler(object):
     def _restore(self, obj):
         if has_tag(obj, tags.B64):
             restore = self._restore_base64
-        elif has_tag(obj, tags.B85):
-            restore = self._restore_base85
         elif has_tag(obj, tags.BYTES):  # Backwards compatibility
             restore = self._restore_quopri
         elif has_tag(obj, tags.ID):
@@ -202,15 +165,11 @@ class Unpickler(object):
         elif util.is_dictionary(obj):
             restore = self._restore_dict
         else:
-            def restore(x):
-                return x
+            restore = lambda x: x
         return restore(obj)
 
     def _restore_base64(self, obj):
-        return util.b64decode(obj[tags.B64].encode('utf-8'))
-
-    def _restore_base85(self, obj):
-        return util.b85decode(obj[tags.B85].encode('utf-8'))
+        return base64.decodestring(obj[tags.B64].encode('utf-8'))
 
     #: For backwards compatibility with bytes data produced by older versions
     def _restore_quopri(self, obj):
@@ -227,17 +186,17 @@ class Unpickler(object):
         """
         proxy = _Proxy()
         self._mkref(proxy)
-        reduce_val = list(map(self._restore, obj[tags.REDUCE]))
-        if len(reduce_val) < 5:
-            reduce_val.extend([None] * (5 - len(reduce_val)))
-        f, args, state, listitems, dictitems = reduce_val
+        reduce_val = obj[tags.REDUCE]
+        reduce_tuple = f, args, state, listitems, dictitems = map(self._restore, reduce_val)
 
-        if f == tags.NEWOBJ or getattr(f, '__name__', '') == '__newobj__':
+        if f == tags.NEWOBJ or f.__name__ == '__newobj__':
             # mandated special case
             cls = args[0]
             if not isinstance(cls, type):
                 cls = self._restore(cls)
+
             stage1 = cls.__new__(cls, *args[1:])
+
         else:
             stage1 = f(*args)
 
@@ -250,15 +209,16 @@ class Unpickler(object):
                     # we can't do a straight update here because we
                     # need object identity of the state dict to be
                     # preserved so that _swap_proxies works out
-                    for k, v in stage1.__dict__.items():
-                        state.setdefault(k, v)
+                    for k in stage1.__dict__.keys():
+                        if k not in state:
+                            state[k] = stage1.__dict__[k]
                     stage1.__dict__ = state
                 except AttributeError:
                     # next prescribed default
                     try:
                         for k, v in state.items():
                             setattr(stage1, k, v)
-                    except Exception:
+                    except:
                         dict_state, slots_state = state
                         if dict_state:
                             stage1.__dict__.update(dict_state)
@@ -293,7 +253,7 @@ class Unpickler(object):
         return self._namedict.get(obj[tags.REF])
 
     def _restore_type(self, obj):
-        typeref = loadclass(obj[tags.TYPE], classes=self._classes)
+        typeref = loadclass(obj[tags.TYPE])
         if typeref is None:
             return obj
         return typeref
@@ -307,7 +267,7 @@ class Unpickler(object):
 
     def _restore_object(self, obj):
         class_name = obj[tags.OBJECT]
-        cls = loadclass(class_name, classes=self._classes)
+        cls = loadclass(class_name)
         handler = handlers.get(cls, handlers.get(class_name))
         if handler is not None:  # custom handler
             proxy = _Proxy()
@@ -323,7 +283,7 @@ class Unpickler(object):
         return self._restore_object_instance(obj, cls)
 
     def _restore_function(self, obj):
-        return loadclass(obj[tags.FUNCTION], classes=self._classes)
+        return loadclass(obj[tags.FUNCTION])
 
     def _loadfactory(self, obj):
         try:
@@ -346,18 +306,16 @@ class Unpickler(object):
         if has_tag(obj, tags.NEWARGSEX):
             args, kwargs = obj[tags.NEWARGSEX]
         else:
-            args = getargs(obj, classes=self._classes)
+            args = getargs(obj)
             kwargs = {}
         if args:
             args = self._restore(args)
         if kwargs:
             kwargs = self._restore(kwargs)
 
-        is_oldstyle = (
-            not (isinstance(cls, type) or getattr(cls, '__meta__', None)))
+        is_oldstyle = not (isinstance(cls, type) or getattr(cls, '__meta__', None))
         try:
-            if (not is_oldstyle) and hasattr(cls, '__new__'):
-                # new style classes
+            if (not is_oldstyle) and hasattr(cls, '__new__'):  # new style classes
                 if factory:
                     instance = cls.__new__(cls, factory, *args, **kwargs)
                     instance.default_factory = factory
@@ -374,7 +332,7 @@ class Unpickler(object):
             except TypeError:  # fail gracefully
                 try:
                     instance = make_blank_classic(cls)
-                except Exception:  # fail gracefully
+                except:  # fail gracefully
                     return self._mkref(obj)
 
         proxy.reset(instance)
@@ -383,7 +341,7 @@ class Unpickler(object):
         if isinstance(instance, tuple):
             return instance
 
-        if (_safe_hasattr(instance, 'default_factory') and
+        if (hasattr(instance, 'default_factory') and
                 isinstance(instance.default_factory, _Proxy)):
             instance.default_factory = instance.default_factory.get()
 
@@ -392,14 +350,13 @@ class Unpickler(object):
     def _restore_from_dict(self, obj, instance, ignorereserved=True):
         restore_key = self._restore_key_fn()
         method = _obj_setattr
-        deferred = {}
 
         for k, v in sorted(obj.items(), key=util.itemgetter):
             # ignore the reserved attribute
             if ignorereserved and k in tags.RESERVED:
                 continue
             if isinstance(k, numeric_types):
-                str_k = k.__str__()
+                str_k = unicode(k)
             else:
                 str_k = k
             self._namestack.append(str_k)
@@ -408,17 +365,7 @@ class Unpickler(object):
             value = self._restore(v)
             if (util.is_noncomplex(instance) or
                     util.is_dictionary_subclass(instance)):
-                try:
-                    if k == '__dict__':
-                        setattr(instance, k, value)
-                    else:
-                        instance[k] = value
-                except TypeError:
-                    # Immutable object, must be constructed in one shot
-                    if k != '__dict__':
-                        deferred[k] = value
-                    self._namestack.pop()
-                    continue
+                instance[k] = value
             else:
                 setattr(instance, k, value)
 
@@ -430,14 +377,8 @@ class Unpickler(object):
             # step out
             self._namestack.pop()
 
-        if deferred:
-            # SQLAlchemy Immutable mappings must be constructed in one shot
-            instance = instance.__class__(deferred)
-
-        return instance
-
     def _restore_object_instance_variables(self, obj, instance):
-        instance = self._restore_from_dict(obj, instance)
+        self._restore_from_dict(obj, instance)
 
         # Handle list and set subclasses
         if has_tag(obj, tags.SEQ):
@@ -464,14 +405,12 @@ class Unpickler(object):
             # implements described default handling
             # of state for object with instance dict
             # and no slots
-            instance = self._restore_from_dict(
-                    state, instance, ignorereserved=False)
+            self._restore_from_dict(state, instance, ignorereserved=False)
         elif has_slots:
-            instance = self._restore_from_dict(
-                    state[1], instance, ignorereserved=False)
+            self._restore_from_dict(state[1], instance, ignorereserved=False)
             if has_slots_and_dict:
-                instance = self._restore_from_dict(
-                        state[0], instance, ignorereserved=False)
+                self._restore_from_dict(state[0],
+                                        instance, ignorereserved=False)
         elif (not hasattr(instance, '__getnewargs__')
               and not hasattr(instance, '__getnewargs_ex__')):
             # __setstate__ is not implemented so that means that the best
@@ -487,11 +426,9 @@ class Unpickler(object):
         children = [self._restore(v) for v in obj]
         parent.extend(children)
         method = _obj_setvalue
-        proxies = [
-            (parent, idx, value, method)
-            for idx, value in enumerate(parent)
-            if isinstance(value, _Proxy)
-        ]
+        proxies = [(parent, idx, value, method)
+                    for idx, value in enumerate(parent)
+                        if isinstance(value, _Proxy)]
         self._proxies.extend(proxies)
         return parent
 
@@ -499,14 +436,14 @@ class Unpickler(object):
         return tuple([self._restore(v) for v in obj[tags.TUPLE]])
 
     def _restore_set(self, obj):
-        return {self._restore(v) for v in obj[tags.SET]}
+        return set([self._restore(v) for v in obj[tags.SET]])
 
     def _restore_dict(self, obj):
         data = {}
         restore_key = self._restore_key_fn()
         for k, v in sorted(obj.items(), key=util.itemgetter):
             if isinstance(k, numeric_types):
-                str_k = k.__str__()
+                str_k = unicode(k)
             else:
                 str_k = k
             self._namestack.append(str_k)
@@ -534,14 +471,11 @@ class Unpickler(object):
         if self.keys:
             restore_key = self._restore_pickled_key
         else:
-            def restore_key(key):
-                return key
+            restore_key = lambda key: key
         return restore_key
 
     def _restore_pickled_key(self, key):
-        """Restore a possibly pickled key"""
-        if (isinstance(key, compat.string_types) and
-                key.startswith(tags.JSON_KEY)):
+        if key.startswith(tags.JSON_KEY):
             key = decode(key[len(tags.JSON_KEY):],
                          backend=self.backend, context=self,
                          keys=True, reset=False)
@@ -595,7 +529,7 @@ class Unpickler(object):
         self._namedict[self._refname()] = instance
 
 
-def loadclass(module_and_name, classes=None):
+def loadclass(module_and_name):
     """Loads the module and returns the class.
 
     >>> cls = loadclass('datetime.datetime')
@@ -604,35 +538,20 @@ def loadclass(module_and_name, classes=None):
 
     >>> loadclass('does.not.exist')
 
-    >>> loadclass('builtins.int')()
+    >>> loadclass('__builtin__.int')()
     0
 
     """
-    # Check if the class exists in a caller-provided scope
-    if classes:
-        try:
-            return classes[module_and_name]
-        except KeyError:
-            pass
-    # Otherwise, load classes from globally-accessible imports
-    names = module_and_name.split('.')
-    # First assume that everything up to the last dot is the module name,
-    # then try other splits to handle classes that are defined within
-    # classes
-    for up_to in range(len(names)-1, 0, -1):
-        module = util.untranslate_module_name('.'.join(names[:up_to]))
-        try:
-            __import__(module)
-            obj = sys.modules[module]
-            for class_name in names[up_to:]:
-                obj = getattr(obj, class_name)
-            return obj
-        except (AttributeError, ImportError, ValueError) as ex:
-            continue
-    return None
+    try:
+        module, name = module_and_name.rsplit('.', 1)
+        module = util.untranslate_module_name(module)
+        __import__(module)
+        return getattr(sys.modules[module], name)
+    except:
+        return None
 
 
-def getargs(obj, classes=None):
+def getargs(obj):
     """Return arguments suitable for __new__()"""
     # Let saved newargs take precedence over everything
     if has_tag(obj, tags.NEWARGSEX):
@@ -649,7 +568,7 @@ def getargs(obj, classes=None):
         obj_dict = obj[tags.OBJECT]
     except KeyError:
         return []
-    typeref = loadclass(obj_dict, classes=classes)
+    typeref = loadclass(obj_dict)
     if not typeref:
         return []
     if hasattr(typeref, '_fields'):

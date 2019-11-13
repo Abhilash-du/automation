@@ -253,30 +253,7 @@ class HTTPRequestParser(object):
 def split_uri(uri):
     # urlsplit handles byte input by returning bytes on py3, so
     # scheme, netloc, path, query, and fragment are bytes
-
-    scheme = netloc = path = query = fragment = b''
-
-    # urlsplit below will treat this as a scheme-less netloc, thereby losing
-    # the original intent of the request. Here we shamelessly stole 4 lines of
-    # code from the CPython stdlib to parse out the fragment and query but
-    # leave the path alone. See
-    # https://github.com/python/cpython/blob/8c9e9b0cd5b24dfbf1424d1f253d02de80e8f5ef/Lib/urllib/parse.py#L465-L468
-    # and https://github.com/Pylons/waitress/issues/260
-
-    if uri[:2] == b'//':
-        path = uri
-
-        if b'#' in path:
-            path, fragment = path.split(b'#', 1)
-
-        if b'?' in path:
-            path, query = path.split(b'?', 1)
-    else:
-        try:
-            scheme, netloc, path, query, fragment = urlparse.urlsplit(uri)
-        except UnicodeError:
-            raise ParsingError('Bad URI')
-
+    scheme, netloc, path, query, fragment = urlparse.urlsplit(uri)
     return (
         tostr(scheme),
         tostr(netloc),
@@ -294,7 +271,7 @@ def get_header_lines(header):
     for line in lines:
         if line.startswith((b' ', b'\t')):
             if not r:
-                # https://corte.si/posts/code/pathod/pythonservers/index.html
+                # http://corte.si/posts/code/pathod/pythonservers/index.html
                 raise ParsingError('Malformed header line "%s"' % tostr(line))
             r[-1] += line
         else:
@@ -313,21 +290,9 @@ def crack_first_line(line):
         if m.group(3):
             version = m.group(5)
         else:
-            version = b''
-        method = m.group(1)
-
-        # the request methods that are currently defined are all uppercase:
-        # https://www.iana.org/assignments/http-methods/http-methods.xhtml and
-        # the request method is case sensitive according to
-        # https://tools.ietf.org/html/rfc7231#section-4.1
-
-        # By disallowing anything but uppercase methods we save poor
-        # unsuspecting souls from sending lowercase HTTP methods to waitress
-        # and having the request complete, while servers like nginx drop the
-        # request onto the floor.
-        if method != method.upper():
-            raise ParsingError('Malformed HTTP method "%s"' % tostr(method))
+            version = None
+        command = m.group(1).upper()
         uri = m.group(2)
-        return method, uri, version
+        return command, uri, version
     else:
         return b'', b'', b''

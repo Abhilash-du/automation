@@ -1,11 +1,9 @@
-import re
-
 from datetime import (
     date,
     datetime,
     )
 
-from collections import namedtuple
+import re
 
 from webob.byterange import (
     ContentRange,
@@ -13,7 +11,7 @@ from webob.byterange import (
     )
 
 from webob.compat import (
-    PY2,
+    PY3,
     text_type,
     )
 
@@ -85,7 +83,14 @@ def environ_decoder(key, default=_not_given, rfc_section=None,
     return property(fget, fset, fdel, doc=doc)
 
 def upath_property(key):
-    if PY2:
+    if PY3: # pragma: no cover
+        def fget(req):
+            encoding = req.url_encoding
+            return req.environ.get(key, '').encode('latin-1').decode(encoding)
+        def fset(req, val):
+            encoding = req.url_encoding
+            req.environ[key] = val.encode(encoding).decode('latin-1')
+    else:
         def fget(req):
             encoding = req.url_encoding
             return req.environ.get(key, '').decode(encoding)
@@ -94,14 +99,6 @@ def upath_property(key):
             if isinstance(val, text_type):
                 val = val.encode(encoding)
             req.environ[key] = val
-    else:
-        def fget(req):
-            encoding = req.url_encoding
-            return req.environ.get(key, '').encode('latin-1').decode(encoding)
-        def fset(req, val):
-            encoding = req.url_encoding
-            req.environ[key] = val.encode(encoding).decode('latin-1')
-
     return property(fget, fset, doc='upath_property(%r)' % key)
 
 
@@ -144,7 +141,7 @@ def header_getter(header, rfc_section):
             if '\n' in value or '\r' in value:
                 raise ValueError('Header value may not contain control characters')
 
-            if isinstance(value, text_type) and PY2:
+            if isinstance(value, text_type) and not PY3:
                 value = value.encode('latin-1')
             r._headerlist.append((header, value))
 
@@ -319,18 +316,16 @@ known_auth_schemes = ['Basic', 'Digest', 'WSSE', 'HMACDigest', 'GoogleLogin',
                       'Cookie', 'OpenID']
 known_auth_schemes = dict.fromkeys(known_auth_schemes, None)
 
-_authorization = namedtuple('Authorization', ['authtype', 'params'])
-
 def parse_auth(val):
     if val is not None:
-        authtype, sep, params = val.partition(' ')
+        authtype, params = val.split(' ', 1)
         if authtype in known_auth_schemes:
             if authtype == 'Basic' and '"' not in params:
                 # this is the "Authentication: Basic XXXXX==" case
                 pass
             else:
                 params = parse_auth_params(params)
-        return _authorization(authtype, params)
+        return authtype, params
     return val
 
 def serialize_auth(val):

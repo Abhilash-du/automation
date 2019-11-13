@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="desktopAutomation" type="library" format="ROBOT" generated="20191018 11:08:18">
+<keywordspec name="desktopAutomation" type="library" format="ROBOT" generated="20191113 05:28:20">
 <version></version>
 <scope>global</scope>
 <namedargs>yes</namedargs>

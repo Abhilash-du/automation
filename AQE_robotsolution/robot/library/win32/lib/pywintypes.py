@@ -123,8 +123,9 @@ def __import_pywin32_system_module__(modname, globs):
     mod = imp.load_dynamic(modname, found)
     # Check the sys.modules[] behaviour we describe above is true...
     if sys.version_info < (3,0):
-        assert sys.modules[modname] is old_mod
-        assert mod is old_mod
+        #assert sys.modules[modname] is old_mod
+        #assert mod is old_mod
+		pass
     else:
         assert sys.modules[modname] is not old_mod
         assert sys.modules[modname] is mod

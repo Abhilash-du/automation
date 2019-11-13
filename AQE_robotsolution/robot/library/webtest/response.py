@@ -96,10 +96,9 @@ class TestResponse(webob.Response):
         arguments are passed to :class:`webtest.app.TestApp.get`. Returns
         another :class:`TestResponse` object.
         """
-        if not (300 <= self.status_int < 400):
-            raise AssertionError(
-                "You can only follow redirect responses (not %s)" % self.status
-            )
+        assert 300 <= self.status_int < 400, (
+            "You can only follow redirect responses (not %s)"
+            % self.status)
         return self._follow(**kw)
 
     def maybe_follow(self, **kw):
@@ -115,9 +114,7 @@ class TestResponse(webob.Response):
             response = response._follow(**kw)
             remaining_redirects -= 1
 
-        if remaining_redirects <= 0:
-            raise AssertionError("redirects chain looks infinite")
-
+        assert remaining_redirects > 0, "redirects chain looks infinite"
         return response
 
     def click(self, description=None, linkid=None, href=None,
@@ -419,7 +416,7 @@ class TestResponse(webob.Response):
     def html(self):
         """
         Returns the response as a `BeautifulSoup
-        <https://www.crummy.com/software/BeautifulSoup/bs3/documentation.html>`_
+        <http://www.crummy.com/software/BeautifulSoup/documentation.html>`_
         object.
 
         Only works with HTML responses; other content-types raise
@@ -435,8 +432,9 @@ class TestResponse(webob.Response):
     @property
     def xml(self):
         """
-        Returns the response as an :mod:`ElementTree
-        <python:xml.etree.ElementTree>` object.
+        Returns the response as an `ElementTree
+        <http://python.org/doc/current/lib/module-xml.etree.ElementTree.html>`_
+        object.
 
         Only works with XML responses; other content-types raise
         AttributeError
@@ -463,8 +461,9 @@ class TestResponse(webob.Response):
     @property
     def lxml(self):
         """
-        Returns the response as an `lxml object <https://lxml.de/>`_.
-        You must have lxml installed to use this.
+        Returns the response as an `lxml object
+        <http://codespeak.net/lxml/>`_.  You must have lxml installed
+        to use this.
 
         If this is an HTML response and you have lxml 2.x installed,
         then an ``lxml.html.HTML`` object will be returned; if you
@@ -506,8 +505,7 @@ class TestResponse(webob.Response):
     @property
     def pyquery(self):
         """
-        Returns the response as a `PyQuery
-        <https://pypi.org/project/pyquery/>`_ object.
+        Returns the response as a `PyQuery <http://pyquery.org/>`_ object.
 
         Only works with HTML and XML responses; other content-types raise
         AttributeError.

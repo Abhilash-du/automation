@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="pyautogui" type="library" format="ROBOT" generated="20191018 11:07:45">
-<version>0.9.47</version>
+<keywordspec name="pyautogui" type="library" format="ROBOT" generated="20191113 05:28:10">
+<version>0.9.41</version>
 <scope>global</scope>
 <namedargs>yes</namedargs>
 <doc>IMPORTANT NOTE!
 
+To use this module on Mac OS X, you need the PyObjC module installed.
+For Python 3, run:
+    sudo pip3 install pyobjc-core
+    sudo pip3 install pyobjc
+For Python 2, run:
+    sudo pip install pyobjc-core
+    sudo pip install pyobjc
+(There's some bug with their installer, so install pyobjc-core first or else
+the install takes forever.)
 
+To use this module on Linux, you need Xlib module installed.
+For Python 3, run:
+    sudo pip3 install python3-Xlib
+For Python 2, run:
+    sudo pip install Xlib
 
 To use this module on Windows, you do not need anything else.
 
@@ -17,8 +31,6 @@ You will need PIL/Pillow to use the screenshot features.</doc>
 <arg>button=OK</arg>
 <arg>root=None</arg>
 <arg>timeout=None</arg>
-<arg>icon=0</arg>
-<arg>_tkinter=False</arg>
 </arguments>
 <doc>Displays a simple message box with text and a single OK button. Returns the text of the button clicked on.</doc>
 <tags>
@@ -38,11 +50,10 @@ You will need PIL/Pillow to use the screenshot features.</doc>
 <arg>y=None</arg>
 <arg>clicks=1</arg>
 <arg>interval=0.0</arg>
-<arg>button=primary</arg>
+<arg>button=left</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs pressing a mouse button down and then immediately releasing it.
@@ -64,7 +75,9 @@ Args:
   interval (float, optional): The number of seconds in between each click,
     if the number of clicks is greater than 1. 0.0 by default, for no
     pause in between clicks.
-  button (str, int, optional): The mouse button clicked. TODO
+  button (str, int, optional): The mouse button clicked. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
 
 Returns:
   None
@@ -78,21 +91,11 @@ Raises:
 <arguments>
 <arg>text=</arg>
 <arg>title=</arg>
-<arg>buttons=('OK', 'Cancel')</arg>
+<arg>buttons=['OK', 'Cancel']</arg>
 <arg>root=None</arg>
 <arg>timeout=None</arg>
-<arg>icon=32</arg>
-<arg>_tkinter=False</arg>
 </arguments>
 <doc>Displays a message box with OK and Cancel buttons. Number and text of buttons can be customized. Returns the text of the button clicked on.</doc>
-<tags>
-</tags>
-</kw>
-<kw name="Countdown">
-<arguments>
-<arg>seconds</arg>
-</arguments>
-<doc></doc>
 <tags>
 </tags>
 </kw>
@@ -113,9 +116,8 @@ automatically display the location and RGB of the mouse cursor.</doc>
 <arg>interval=0.0</arg>
 <arg>button=left</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a double click.
@@ -137,7 +139,9 @@ Args:
   interval (float, optional): The number of seconds in between each click,
     if the number of clicks is greater than 1. 0.0 by default, for no
     pause in between clicks.
-  button (str, int, optional): The mouse button released. TODO
+  button (str, int, optional): The mouse button clicked. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
 
 Returns:
   None
@@ -153,10 +157,9 @@ Raises:
 <arg>xOffset=0</arg>
 <arg>yOffset=0</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
-<arg>button=primary</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
+<arg>button=left</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 <arg>mouseDownUp=True</arg>
 </arguments>
@@ -179,7 +182,9 @@ Args:
   tween (func, optional): The tweening function used if the duration is not
     0. A linear tween is used by default. See the tweens.py file for
     details.
-  button (str, int, optional): The mouse button released. TODO
+  button (str, int, optional): The mouse button clicked. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
   mouseDownUp (True, False): When true, the mouseUp/Down actions are not perfomed.
     Which allows dragging over multiple (small) actions. 'True' by default.
 
@@ -193,10 +198,9 @@ Returns:
 <arg>xOffset=0</arg>
 <arg>yOffset=0</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
-<arg>button=primary</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
+<arg>button=left</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 <arg>mouseDownUp=True</arg>
 </arguments>
@@ -219,7 +223,9 @@ Args:
   tween (func, optional): The tweening function used if the duration is not
     0. A linear tween is used by default. See the tweens.py file for
     details.
-  button (str, int, optional): The mouse button released. TODO
+  button (str, int, optional): The mouse button clicked. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
   mouseDownUp (True, False): When true, the mouseUp/Down actions are not perfomed.
     Which allows dragging over multiple (small) actions. 'True' by default.
 
@@ -233,10 +239,9 @@ Returns:
 <arg>x=None</arg>
 <arg>y=None</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
-<arg>button=primary</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
+<arg>button=left</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 <arg>mouseDownUp=True</arg>
 </arguments>
@@ -261,7 +266,9 @@ Args:
   tween (func, optional): The tweening function used if the duration is not
     0. A linear tween is used by default. See the tweens.py file for
     details.
-  button (str, int, optional): The mouse button released. TODO
+  button (str, int, optional): The mouse button clicked. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
   mouseDownUp (True, False): When true, the mouseUp/Down actions are not perfomed.
     Which allows dragging over multiple (small) actions. 'True' by default.
 
@@ -699,13 +706,6 @@ Returns:
 <tags>
 </tags>
 </kw>
-<kw name="Get Active Window">
-<arguments>
-</arguments>
-<doc>Returns a Window object of the currently active Window.</doc>
-<tags>
-</tags>
-</kw>
 <kw name="Get All Titles">
 <arguments>
 </arguments>
@@ -717,6 +717,13 @@ Returns:
 <arguments>
 </arguments>
 <doc>Returns a list of Window objects for all visible windows.</doc>
+<tags>
+</tags>
+</kw>
+<kw name="Get Focused Window">
+<arguments>
+</arguments>
+<doc>Returns a Window object of the currently focused Window.</doc>
 <tags>
 </tags>
 </kw>
@@ -793,7 +800,6 @@ Returns:
 <arg>x=None</arg>
 <arg>y=None</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs an explicitly horizontal scroll of the mouse scroll wheel,
@@ -850,7 +856,6 @@ Returns:
 <arguments>
 <arg>key</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a keyboard key press without the release. This will put that
@@ -872,7 +877,6 @@ Returns:
 <arguments>
 <arg>key</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a keyboard key release (without the press down beforehand).
@@ -880,42 +884,6 @@ Returns:
 Args:
   key (str): The key to be released up. The valid names are listed in
   KEYBOARD_KEYS.
-
-Returns:
-  None</doc>
-<tags>
-</tags>
-</kw>
-<kw name="Left Click">
-<arguments>
-<arg>x=None</arg>
-<arg>y=None</arg>
-<arg>interval=0.0</arg>
-<arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
-<arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
-<arg>_pause=True</arg>
-</arguments>
-<doc>Performs a right mouse button click.
-
-This is a wrapper function for click('right', x, y).
-
-The x and y parameters detail where the mouse event happens. If None, the
-current mouse position is used. If a float value, it is rounded down. If
-outside the boundaries of the screen, the event happens at edge of the
-screen.
-
-Args:
-  x (int, float, None, tuple, optional): The x position on the screen where the
-    click happens. None by default. If tuple, this is used for x and y.
-    If x is a str, it's considered a filename of an image to find on
-    the screen with locateOnScreen() and click the center of.
-  y (int, float, None, optional): The y position on the screen where the
-    click happens. None by default.
-  interval (float, optional): The number of seconds in between each click,
-    if the number of clicks is greater than 1. 0.0 by default, for no
-    pause in between clicks.
 
 Returns:
   None</doc>
@@ -996,11 +964,9 @@ a single search.</doc>
 <arguments>
 <arg>x=None</arg>
 <arg>y=None</arg>
-<arg>interval=0.0</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a middle mouse button click.
@@ -1029,11 +995,10 @@ Returns:
 <arguments>
 <arg>x=None</arg>
 <arg>y=None</arg>
-<arg>button=primary</arg>
+<arg>button=left</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs pressing a mouse button down (but not up).
@@ -1050,7 +1015,9 @@ Args:
     the screen with locateOnScreen() and click the center of.
   y (int, float, None, optional): The y position on the screen where the
     mouse down happens. None by default.
-  button (str, int, optional): The mouse button pressed down. TODO
+  button (str, int, optional): The mouse button pressed down. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
 
 Returns:
   None
@@ -1060,22 +1027,14 @@ Raises:
 <tags>
 </tags>
 </kw>
-<kw name="Mouse Info">
-<arguments>
-</arguments>
-<doc></doc>
-<tags>
-</tags>
-</kw>
 <kw name="Mouse Up">
 <arguments>
 <arg>x=None</arg>
 <arg>y=None</arg>
-<arg>button=primary</arg>
+<arg>button=left</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs releasing a mouse button up (but not down beforehand).
@@ -1092,7 +1051,9 @@ Args:
     the screen with locateOnScreen() and click the center of.
   y (int, float, None, optional): The y position on the screen where the
     mouse up happens. None by default.
-  button (str, int, optional): The mouse button released. TODO
+  button (str, int, optional): The mouse button released. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
 
 Returns:
   None
@@ -1107,9 +1068,8 @@ Raises:
 <arg>xOffset=None</arg>
 <arg>yOffset=None</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=False</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Moves the mouse cursor to a point on the screen, relative to its current
@@ -1142,9 +1102,8 @@ Returns:
 <arg>xOffset=None</arg>
 <arg>yOffset=None</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=False</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Moves the mouse cursor to a point on the screen, relative to its current
@@ -1177,9 +1136,8 @@ Returns:
 <arg>x=None</arg>
 <arg>y=None</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=False</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Moves the mouse cursor to a point on the screen.
@@ -1213,9 +1171,7 @@ Returns:
 <arg>x</arg>
 <arg>y=None</arg>
 </arguments>
-<doc>Returns whether the given xy coordinates are on the primary screen or not.
-
-Note that this function doesn't work for secondary screens.
+<doc>Returns whether the given xy coordinates are on the screen or not.
 
 Args:
   Either the arguments are two separate values, first arg for x and second
@@ -1277,9 +1233,7 @@ Args:
     the return value.
 
 Returns:
-  (x, y) tuple of the current xy coordinates of the mouse cursor.
-
-NOTE: The position() functon doesn't check for failsafe.</doc>
+  (x, y) tuple of the current xy coordinates of the mouse cursor.</doc>
 <tags>
 </tags>
 </kw>
@@ -1289,7 +1243,6 @@ NOTE: The position() functon doesn't check for failsafe.</doc>
 <arg>presses=1</arg>
 <arg>interval=0.0</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a keyboard key press down, followed by a release.
@@ -1324,11 +1277,9 @@ Returns:
 <arguments>
 <arg>x=None</arg>
 <arg>y=None</arg>
-<arg>interval=0.0</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a right mouse button click.
@@ -1347,9 +1298,6 @@ Args:
     the screen with locateOnScreen() and click the center of.
   y (int, float, None, optional): The y position on the screen where the
     click happens. None by default.
-  interval (float, optional): The number of seconds in between each click,
-    if the number of clicks is greater than 1. 0.0 by default, for no
-    pause in between clicks.
 
 Returns:
   None</doc>
@@ -1371,7 +1319,6 @@ Returns:
 <arg>x=None</arg>
 <arg>y=None</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a scroll of the mouse scroll wheel.
@@ -1406,14 +1353,6 @@ Returns:
 <tags>
 </tags>
 </kw>
-<kw name="Sleep">
-<arguments>
-<arg>seconds</arg>
-</arguments>
-<doc></doc>
-<tags>
-</tags>
-</kw>
 <kw name="Triple Click">
 <arguments>
 <arg>x=None</arg>
@@ -1421,9 +1360,8 @@ Returns:
 <arg>interval=0.0</arg>
 <arg>button=left</arg>
 <arg>duration=0.0</arg>
-<arg>tween=&lt;function linear at 0x08CCA8A0&gt;</arg>
+<arg>tween=&lt;function linear at 0x0832DB70&gt;</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a triple click..
@@ -1445,7 +1383,9 @@ Args:
   interval (float, optional): The number of seconds in between each click,
     if the number of clicks is greater than 1. 0.0 by default, for no
     pause in between clicks.
-  button (str, int, optional): The mouse button released. TODO
+  button (str, int, optional): The mouse button clicked. Must be one of
+    'left', 'middle', 'right' (or 1, 2, or 3) respectively. 'left' by
+    default.
 
 Returns:
   None
@@ -1461,7 +1401,6 @@ Raises:
 <arg>message</arg>
 <arg>interval=0.0</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a keyboard key press down, followed by a release, for each of
@@ -1486,21 +1425,12 @@ Returns:
 <tags>
 </tags>
 </kw>
-<kw name="Use Image Not Found Exception">
-<arguments>
-<arg>value=None</arg>
-</arguments>
-<doc></doc>
-<tags>
-</tags>
-</kw>
 <kw name="Vscroll">
 <arguments>
 <arg>clicks</arg>
 <arg>x=None</arg>
 <arg>y=None</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs an explicitly vertical scroll of the mouse scroll wheel,
@@ -1528,7 +1458,6 @@ Returns:
 <arg>message</arg>
 <arg>interval=0.0</arg>
 <arg>pause=None</arg>
-<arg>logScreenshot=None</arg>
 <arg>_pause=True</arg>
 </arguments>
 <doc>Performs a keyboard key press down, followed by a release, for each of

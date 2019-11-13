@@ -135,7 +135,7 @@ def _decode_general_name(backend, gn):
             if "1" in bits[prefix:]:
                 raise ValueError("Invalid netmask")
 
-            ip = ipaddress.ip_network(base.exploded + u"/{}".format(prefix))
+            ip = ipaddress.ip_network(base.exploded + u"/{0}".format(prefix))
         else:
             ip = ipaddress.ip_address(data)
 
@@ -160,7 +160,7 @@ def _decode_general_name(backend, gn):
     else:
         # x400Address or ediPartyName
         raise x509.UnsupportedGeneralNameType(
-            "{} is not a supported type".format(
+            "{0} is not a supported type".format(
                 x509._GENERAL_NAMES.get(gn.type, gn.type)
             ),
             gn.type
@@ -202,7 +202,7 @@ class _X509ExtensionParser(object):
             )
             if oid in seen_oids:
                 raise x509.DuplicateExtension(
-                    "Duplicate {} extension found".format(oid), oid
+                    "Duplicate {0} extension found".format(oid), oid
                 )
 
             # These OIDs are only supported in OpenSSL 1.1.0+ but we want
@@ -245,7 +245,7 @@ class _X509ExtensionParser(object):
                 if ext_data == backend._ffi.NULL:
                     backend._consume_errors()
                     raise ValueError(
-                        "The {} extension is invalid and can't be "
+                        "The {0} extension is invalid and can't be "
                         "parsed".format(oid)
                     )
 
@@ -379,14 +379,7 @@ def _decode_authority_key_identifier(backend, akid):
 
 def _decode_authority_information_access(backend, aia):
     aia = backend._ffi.cast("Cryptography_STACK_OF_ACCESS_DESCRIPTION *", aia)
-    aia = backend._ffi.gc(
-        aia,
-        lambda x: backend._lib.sk_ACCESS_DESCRIPTION_pop_free(
-            x, backend._ffi.addressof(
-                backend._lib._original_lib, "ACCESS_DESCRIPTION_free"
-            )
-        )
-    )
+    aia = backend._ffi.gc(aia, backend._lib.sk_ACCESS_DESCRIPTION_free)
     num = backend._lib.sk_ACCESS_DESCRIPTION_num(aia)
     access_descriptions = []
     for i in range(num):
@@ -705,7 +698,7 @@ def _decode_crl_reason(backend, enum):
     try:
         return x509.CRLReason(_CRL_ENTRY_REASON_CODE_TO_ENUM[code])
     except KeyError:
-        raise ValueError("Unsupported reason code: {}".format(code))
+        raise ValueError("Unsupported reason code: {0}".format(code))
 
 
 def _decode_invalidity_date(backend, inv_date):
@@ -765,7 +758,7 @@ def _asn1_string_to_utf8(backend, asn1_string):
     res = backend._lib.ASN1_STRING_to_UTF8(buf, asn1_string)
     if res == -1:
         raise ValueError(
-            "Unsupported ASN1 string type. Type: {}".format(asn1_string.type)
+            "Unsupported ASN1 string type. Type: {0}".format(asn1_string.type)
         )
 
     backend.openssl_assert(buf[0] != backend._ffi.NULL)

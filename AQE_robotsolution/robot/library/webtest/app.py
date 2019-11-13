@@ -100,7 +100,7 @@ class TestApp(object):
 
         It can also be an actual full URL to an http server and webtest
         will proxy requests with `WSGIProxy2
-        <https://pypi.org/project/WSGIProxy2/>`_.
+        <https://pypi.python.org/pypi/WSGIProxy2/>`_.
     :type app:
         WSGI application
     :param extra_environ:
@@ -184,12 +184,8 @@ class TestApp(object):
         self.JSONEncoder = json_encoder
 
     def get_authorization(self):
-        """Allow to set the HTTP_AUTHORIZATION environ key. Value should look
-        like one of the following:
-
-        * ``('Basic', ('user', 'password'))``
-        * ``('Bearer', 'mytoken')``
-        * ``('JWT', 'myjwt')``
+        """Allow to set the HTTP_AUTHORIZATION environ key. Value should looks
+        like ``('Basic', ('user', 'password'))``
 
         If value is None the the HTTP_AUTHORIZATION is removed
         """
@@ -341,17 +337,18 @@ class TestApp(object):
         Do a POST request. Similar to :meth:`~webtest.TestApp.get`.
 
         :param params:
-            Are put in the body of the request. If params is an
-            iterator, it will be urlencoded. If it is a string, it will not
+            Are put in the body of the request. If params is a
+            iterator it will be urlencoded, if it is string it will not
             be encoded, but placed in the body directly.
 
-            Can be a :class:`python:collections.OrderedDict` with
+            Can be a collections.OrderedDict with
             :class:`webtest.forms.Upload` fields included::
 
-                app.post('/myurl', collections.OrderedDict([
-                    ('textfield1', 'value1'),
-                    ('uploadfield', webapp.Upload('filename.txt', 'contents'),
-                    ('textfield2', 'value2')])))
+
+            app.post('/myurl', collections.OrderedDict([
+                ('textfield1', 'value1'),
+                ('uploadfield', webapp.Upload('filename.txt', 'contents'),
+                ('textfield2', 'value2')])))
 
         :param upload_files:
             It should be a list of ``(fieldname, filename, file_content)``.

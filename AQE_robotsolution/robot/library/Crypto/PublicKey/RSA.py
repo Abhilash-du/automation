@@ -88,7 +88,7 @@ class RsaKey(object):
             The second factor of the modulus. Only required for private keys.
           u : integer
             The CRT coefficient (inverse of p modulo q). Only required for
-            private keys.
+            privta keys.
         """
 
         input_set = set(kwargs.keys())
@@ -197,7 +197,10 @@ class RsaKey(object):
             return False
         if not self.has_private():
             return True
-        return (self.d == other.d)
+        return (self.d == other.d and
+                self.q == other.q and
+                self.p == other.p and
+                self.u == other.u)
 
     def __ne__(self, other):
         return not (self == other)
@@ -676,32 +679,9 @@ def _import_keyDER(extern_key, passphrase):
     raise ValueError("RSA key format is not supported")
 
 
-def _import_openssh_private_rsa(data, password):
-
-    from ._openssh import (import_openssh_private_generic,
-                           read_bytes, read_string, check_padding)
-
-    ssh_name, decrypted = import_openssh_private_generic(data, password)
-
-    if ssh_name != "ssh-rsa":
-        raise ValueError("This SSH key is not RSA")
-
-    n, decrypted = read_bytes(decrypted)
-    e, decrypted = read_bytes(decrypted)
-    d, decrypted = read_bytes(decrypted)
-    iqmp, decrypted = read_bytes(decrypted)
-    p, decrypted = read_bytes(decrypted)
-    q, decrypted = read_bytes(decrypted)
-
-    _, padded = read_string(decrypted)  # Comment
-    check_padding(padded)
-
-    build = [Integer.from_bytes(x) for x in (n, e, d, q, p, iqmp)]
-    return construct(build)
-
-
 def import_key(extern_key, passphrase=None):
-    """Import an RSA key (public or private).
+    """Import an RSA key (public or private half), encoded in standard
+    form.
 
     Args:
       extern_key (string or byte string):
@@ -713,19 +693,23 @@ def import_key(extern_key, passphrase=None):
         - X.509 ``subjectPublicKeyInfo`` DER SEQUENCE (binary or PEM
           encoding)
         - `PKCS#1`_ ``RSAPublicKey`` DER SEQUENCE (binary or PEM encoding)
-        - An OpenSSH line (e.g. the content of ``~/.ssh/id_ecdsa``, ASCII)
+        - OpenSSH (textual public key only)
 
         The following formats are supported for an RSA **private key**:
 
         - PKCS#1 ``RSAPrivateKey`` DER SEQUENCE (binary or PEM encoding)
         - `PKCS#8`_ ``PrivateKeyInfo`` or ``EncryptedPrivateKeyInfo``
           DER SEQUENCE (binary or PEM encoding)
-        - OpenSSH (text format, introduced in `OpenSSH 6.5`_)
+        - OpenSSH (textual public key only)
 
         For details about the PEM encoding, see `RFC1421`_/`RFC1423`_.
 
-      passphrase (string or byte string):
-        For private keys only, the pass phrase that encrypts the key.
+        The private key may be encrypted by means of a certain pass phrase
+        either at the PEM level or at the PKCS#8 level.
+
+      passphrase (string):
+        In case of an encrypted private key, this is the pass phrase from
+        which the decryption key is derived.
 
     Returns: An RSA key object (:class:`RsaKey`).
 
@@ -738,18 +722,11 @@ def import_key(extern_key, passphrase=None):
     .. _RFC1423: http://www.ietf.org/rfc/rfc1423.txt
     .. _`PKCS#1`: http://www.ietf.org/rfc/rfc3447.txt
     .. _`PKCS#8`: http://www.ietf.org/rfc/rfc5208.txt
-    .. _`OpenSSH 6.5`: https://flak.tedunangst.com/post/new-openssh-key-format-and-bcrypt-pbkdf
     """
 
     extern_key = tobytes(extern_key)
     if passphrase is not None:
         passphrase = tobytes(passphrase)
-
-    if extern_key.startswith(b'-----BEGIN OPENSSH PRIVATE KEY'):
-        text_encoded = tostr(extern_key)
-        openssh_encoded, marker, enc_flag = PEM.decode(text_encoded, passphrase)
-        result = _import_openssh_private_rsa(openssh_encoded, passphrase)
-        return result
 
     if extern_key.startswith(b'-----'):
         # This is probably a PEM encoded key.
@@ -759,23 +736,22 @@ def import_key(extern_key, passphrase=None):
         return _import_keyDER(der, passphrase)
 
     if extern_key.startswith(b'ssh-rsa '):
-        # This is probably an OpenSSH key
-        keystring = binascii.a2b_base64(extern_key.split(b' ')[1])
-        keyparts = []
-        while len(keystring) > 4:
-            length = struct.unpack(">I", keystring[:4])[0]
-            keyparts.append(keystring[4:4 + length])
-            keystring = keystring[4 + length:]
-        e = Integer.from_bytes(keyparts[1])
-        n = Integer.from_bytes(keyparts[2])
-        return construct([n, e])
+            # This is probably an OpenSSH key
+            keystring = binascii.a2b_base64(extern_key.split(b' ')[1])
+            keyparts = []
+            while len(keystring) > 4:
+                l = struct.unpack(">I", keystring[:4])[0]
+                keyparts.append(keystring[4:4 + l])
+                keystring = keystring[4 + l:]
+            e = Integer.from_bytes(keyparts[1])
+            n = Integer.from_bytes(keyparts[2])
+            return construct([n, e])
 
-    if len(extern_key) > 0 and bord(extern_key[0]) == 0x30:
-        # This is probably a DER encoded key
-        return _import_keyDER(extern_key, passphrase)
+    if bord(extern_key[0]) == 0x30:
+            # This is probably a DER encoded key
+            return _import_keyDER(extern_key, passphrase)
 
     raise ValueError("RSA key format is not supported")
-
 
 # Backward compatibility
 importKey = import_key

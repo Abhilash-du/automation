@@ -72,7 +72,7 @@ class RFC822Name(object):
                     "This means unicode characters should be encoded via "
                     "idna. Support for passing unicode strings (aka U-label) "
                     "will be removed in a future version.",
-                    utils.PersistentlyDeprecated2017,
+                    utils.DeprecatedIn21,
                     stacklevel=2,
                 )
         else:
@@ -139,7 +139,7 @@ class DNSName(object):
                     "This means unicode characters should be encoded via "
                     "idna. Support for passing unicode strings (aka U-label) "
                     "will be removed in a future version.",
-                    utils.PersistentlyDeprecated2017,
+                    utils.DeprecatedIn21,
                     stacklevel=2,
                 )
         else:
@@ -184,7 +184,7 @@ class UniformResourceIdentifier(object):
                     "This means unicode characters should be encoded via "
                     "idna. Support for passing unicode strings (aka U-label) "
                     " will be removed in a future version.",
-                    utils.PersistentlyDeprecated2017,
+                    utils.DeprecatedIn21,
                     stacklevel=2,
                 )
         else:
@@ -206,7 +206,7 @@ class UniformResourceIdentifier(object):
         if parsed.port:
             netloc = (
                 idna.encode(parsed.hostname) +
-                ":{}".format(parsed.port).encode("ascii")
+                ":{0}".format(parsed.port).encode("ascii")
             ).decode("ascii")
         else:
             netloc = idna.encode(parsed.hostname).decode("ascii")
@@ -250,7 +250,7 @@ class DirectoryName(object):
     value = utils.read_only_property("_value")
 
     def __repr__(self):
-        return "<DirectoryName(value={})>".format(self.value)
+        return "<DirectoryName(value={0})>".format(self.value)
 
     def __eq__(self, other):
         if not isinstance(other, DirectoryName):
@@ -276,7 +276,7 @@ class RegisteredID(object):
     value = utils.read_only_property("_value")
 
     def __repr__(self):
-        return "<RegisteredID(value={})>".format(self.value)
+        return "<RegisteredID(value={0})>".format(self.value)
 
     def __eq__(self, other):
         if not isinstance(other, RegisteredID):
@@ -314,7 +314,7 @@ class IPAddress(object):
     value = utils.read_only_property("_value")
 
     def __repr__(self):
-        return "<IPAddress(value={})>".format(self.value)
+        return "<IPAddress(value={0})>".format(self.value)
 
     def __eq__(self, other):
         if not isinstance(other, IPAddress):
@@ -344,7 +344,7 @@ class OtherName(object):
     value = utils.read_only_property("_value")
 
     def __repr__(self):
-        return "<OtherName(type_id={}, value={!r})>".format(
+        return "<OtherName(type_id={0}, value={1!r})>".format(
             self.type_id, self.value)
 
     def __eq__(self, other):

@@ -1,7 +1,8 @@
 import re
 
 __all__ = ['Range', 'ContentRange']
-_rx_range = re.compile(r'bytes *= *(\d*) *- *(\d*)', flags=re.I)
+
+_rx_range = re.compile('bytes *= *(\d*) *- *(\d*)', flags=re.I)
 _rx_content_range = re.compile(r'bytes (?:(\d+)-(\d+)|[*])/(?:(\d+)|[*])')
 
 class Range(object):

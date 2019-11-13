@@ -12,18 +12,23 @@
 #
 ##############################################################################
 
-from collections import deque
 import socket
 import sys
 import threading
 import time
 
-from .buffers import ReadOnlyFileBasedBuffer
-from .compat import reraise, tobytes
-from .utilities import (
+from waitress.buffers import ReadOnlyFileBasedBuffer
+
+from waitress.compat import (
+    tobytes,
+    Queue,
+    Empty,
+    reraise,
+)
+
+from waitress.utilities import (
     build_http_date,
     logger,
-    queue_logger,
 )
 
 rename_headers = {  # or keep them without the HTTP_ prefix added
@@ -42,21 +47,19 @@ hop_by_hop = frozenset((
     'upgrade'
 ))
 
+class JustTesting(Exception):
+    pass
 
 class ThreadedTaskDispatcher(object):
     """A Task Dispatcher that creates a thread for each task.
     """
-    stop_count = 0  # Number of threads that will stop soon.
-    active_count = 0  # Number of currently active threads
+    stop_count = 0 # Number of threads that will stop soon.
     logger = logger
-    queue_logger = queue_logger
 
     def __init__(self):
-        self.threads = set()
-        self.queue = deque()
-        self.lock = threading.Lock()
-        self.queue_cv = threading.Condition(self.lock)
-        self.thread_exit_cv = threading.Condition(self.lock)
+        self.threads = {} # { thread number -> 1 }
+        self.queue = Queue()
+        self.thread_mgmt_lock = threading.Lock()
 
     def start_new_thread(self, target, args):
         t = threading.Thread(target=target, name='waitress', args=args)
@@ -64,31 +67,27 @@ class ThreadedTaskDispatcher(object):
         t.start()
 
     def handler_thread(self, thread_no):
-        while True:
-            with self.lock:
-                while not self.queue and self.stop_count == 0:
-                    # Mark ourselves as idle before waiting to be
-                    # woken up, then we will once again be active
-                    self.active_count -= 1
-                    self.queue_cv.wait()
-                    self.active_count += 1
-
-                if self.stop_count > 0:
-                    self.active_count -= 1
-                    self.stop_count -= 1
-                    self.threads.discard(thread_no)
-                    self.thread_exit_cv.notify()
+        threads = self.threads
+        try:
+            while threads.get(thread_no):
+                task = self.queue.get()
+                if task is None:
+                    # Special value: kill this thread.
                     break
-
-                task = self.queue.popleft()
-            try:
-                task.service()
-            except BaseException:
-                self.logger.exception(
-                    'Exception when servicing %r', task)
+                try:
+                    task.service()
+                except Exception as e:
+                    self.logger.exception(
+                        'Exception when servicing %r' % task)
+                    if isinstance(e, JustTesting):
+                        break
+        finally:
+            with self.thread_mgmt_lock:
+                self.stop_count -= 1
+                threads.pop(thread_no, None)
 
     def set_thread_count(self, count):
-        with self.lock:
+        with self.thread_mgmt_lock:
             threads = self.threads
             thread_no = 0
             running = len(threads) - self.stop_count
@@ -96,50 +95,49 @@ class ThreadedTaskDispatcher(object):
                 # Start threads.
                 while thread_no in threads:
                     thread_no = thread_no + 1
-                threads.add(thread_no)
+                threads[thread_no] = 1
                 running += 1
                 self.start_new_thread(self.handler_thread, (thread_no,))
-                self.active_count += 1
                 thread_no = thread_no + 1
             if running > count:
                 # Stop threads.
-                self.stop_count += running - count
-                self.queue_cv.notify_all()
+                to_stop = running - count
+                self.stop_count += to_stop
+                for n in range(to_stop):
+                    self.queue.put(None)
+                    running -= 1
 
     def add_task(self, task):
-        with self.lock:
-            self.queue.append(task)
-            self.queue_cv.notify()
-            queue_size = len(self.queue)
-            idle_threads = (
-                len(self.threads) - self.stop_count - self.active_count)
-            if queue_size > idle_threads:
-                self.queue_logger.warning(
-                    "Task queue depth is %d", queue_size - idle_threads)
+        try:
+            task.defer()
+            self.queue.put(task)
+        except:
+            task.cancel()
+            raise
 
     def shutdown(self, cancel_pending=True, timeout=5):
         self.set_thread_count(0)
         # Ensure the threads shut down.
         threads = self.threads
         expiration = time.time() + timeout
-        with self.lock:
-            while threads:
-                if time.time() >= expiration:
-                    self.logger.warning(
-                        "%d thread(s) still running", len(threads))
-                    break
-                self.thread_exit_cv.wait(0.1)
-            if cancel_pending:
-                # Cancel remaining tasks.
+        while threads:
+            if time.time() >= expiration:
+                self.logger.warning(
+                    "%d thread(s) still running" %
+                    len(threads))
+                break
+            time.sleep(0.1)
+        if cancel_pending:
+            # Cancel remaining tasks.
+            try:
                 queue = self.queue
-                if len(queue) > 0:
-                    self.logger.warning(
-                        "Canceling %d pending task(s)", len(queue))
-                while queue:
-                    task = queue.popleft()
-                    task.cancel()
-                self.queue_cv.notify_all()
-                return True
+                while not queue.empty():
+                    task = queue.get()
+                    if task is not None:
+                        task.cancel()
+            except Empty: # pragma: no cover
+                pass
+            return True
         return False
 
 class Task(object):
@@ -150,7 +148,6 @@ class Task(object):
     content_length = None
     content_bytes_written = 0
     logged_write_excess = False
-    logged_write_no_body = False
     complete = False
     chunked_response = False
     logger = logger
@@ -178,52 +175,40 @@ class Task(object):
         finally:
             pass
 
-    @property
-    def has_body(self):
-        return not (self.status.startswith('1') or
-                    self.status.startswith('204') or
-                    self.status.startswith('304')
-                    )
+    def cancel(self):
+        self.close_on_finish = True
+
+    def defer(self):
+        pass
 
     def build_response_header(self):
         version = self.version
         # Figure out whether the connection should be closed.
         connection = self.request.headers.get('CONNECTION', '').lower()
-        response_headers = []
+        response_headers = self.response_headers
         content_length_header = None
         date_header = None
         server_header = None
         connection_close_header = None
 
-        for (headername, headerval) in self.response_headers:
+        for i, (headername, headerval) in enumerate(response_headers):
             headername = '-'.join(
                 [x.capitalize() for x in headername.split('-')]
             )
-
             if headername == 'Content-Length':
-                if self.has_body:
-                    content_length_header = headerval
-                else:
-                    continue  # pragma: no cover
-
+                content_length_header = headerval
             if headername == 'Date':
                 date_header = headerval
-
             if headername == 'Server':
                 server_header = headerval
-
             if headername == 'Connection':
                 connection_close_header = headerval.lower()
             # replace with properly capitalized version
-            response_headers.append((headername, headerval))
+            response_headers[i] = (headername, headerval)
 
-        if (
-            content_length_header is None and
-            self.content_length is not None and
-            self.has_body
-        ):
+        if content_length_header is None and self.content_length is not None:
             content_length_header = str(self.content_length)
-            response_headers.append(
+            self.response_headers.append(
                 ('Content-Length', content_length_header)
             )
 
@@ -246,13 +231,8 @@ class Task(object):
                 close_on_finish()
 
             if not content_length_header:
-                # RFC 7230: MUST NOT send Transfer-Encoding or Content-Length
-                # for any response with a status code of 1xx, 204 or 304.
-
-                if self.has_body:
-                    response_headers.append(('Transfer-Encoding', 'chunked'))
-                    self.chunked_response = True
-
+                response_headers.append(('Transfer-Encoding', 'chunked'))
+                self.chunked_response = True
                 if not self.close_on_finish:
                     close_on_finish()
 
@@ -263,38 +243,27 @@ class Task(object):
         # Set the Server and Date field, if not yet specified. This is needed
         # if the server is used as a proxy.
         ident = self.channel.server.adj.ident
-
         if not server_header:
-            if ident:
-                response_headers.append(('Server', ident))
+            response_headers.append(('Server', ident))
         else:
-            response_headers.append(('Via', ident or 'waitress'))
-
+            response_headers.append(('Via', ident))
         if not date_header:
             response_headers.append(('Date', build_http_date(self.start_time)))
-
-        self.response_headers = response_headers
 
         first_line = 'HTTP/%s %s' % (self.version, self.status)
         # NB: sorting headers needs to preserve same-named-header order
         # as per RFC 2616 section 4.2; thus the key=lambda x: x[0] here;
         # rely on stable sort to keep relative position of same-named headers
         next_lines = ['%s: %s' % hv for hv in sorted(
-            self.response_headers, key=lambda x: x[0])]
+                self.response_headers, key=lambda x: x[0])]
         lines = [first_line] + next_lines
         res = '%s\r\n\r\n' % '\r\n'.join(lines)
-
         return tobytes(res)
 
     def remove_content_length_header(self):
-        response_headers = []
-
-        for header_name, header_value in self.response_headers:
+        for i, (header_name, header_value) in enumerate(self.response_headers):
             if header_name.lower() == 'content-length':
-                continue  # pragma: nocover
-            response_headers.append((header_name, header_value))
-
-        self.response_headers = response_headers
+                del self.response_headers[i]
 
     def start(self):
         self.start_time = time.time()
@@ -315,8 +284,7 @@ class Task(object):
             rh = self.build_response_header()
             channel.write_soon(rh)
             self.wrote_header = True
-
-        if data and self.has_body:
+        if data:
             towrite = data
             cl = self.content_length
             if self.chunked_response:
@@ -333,18 +301,6 @@ class Task(object):
                     self.logged_write_excess = True
             if towrite:
                 channel.write_soon(towrite)
-        elif data:
-            # Cheat, and tell the application we have written all of the bytes,
-            # even though the response shouldn't have a body and we are
-            # ignoring it entirely.
-            self.content_bytes_written += len(data)
-
-            if not self.logged_write_no_body:
-                self.logger.warning(
-                    'application-written content was ignored due to HTTP '
-                    'response that may not contain a message-body: (%s)' % self.status)
-                self.logged_write_no_body = True
-
 
 class ErrorTask(Task):
     """ An error task produces an error response
@@ -353,9 +309,14 @@ class ErrorTask(Task):
 
     def execute(self):
         e = self.request.error
-        status, headers, body = e.to_response()
-        self.status = status
-        self.response_headers.extend(headers)
+        body = '%s\r\n\r\n%s' % (e.reason, e.body)
+        tag = '\r\n\r\n(generated by waitress)'
+        body = body + tag
+        self.status = '%s %s' % (e.code, e.reason)
+        cl = len(body)
+        self.content_length = cl
+        self.response_headers.append(('Content-Length', str(cl)))
+        self.response_headers.append(('Content-Type', 'text/plain'))
         if self.version == '1.1':
             connection = self.request.headers.get('CONNECTION', '').lower()
             if connection == 'close':
@@ -365,9 +326,7 @@ class ErrorTask(Task):
             # HTTP 1.0
             self.response_headers.append(('Connection', 'close'))
         self.close_on_finish = True
-        self.content_length = len(body)
         self.write(tobytes(body))
-
 
 class WSGITask(Task):
     """A WSGI task produces a response from a WSGI application.
@@ -375,7 +334,7 @@ class WSGITask(Task):
     environ = None
 
     def execute(self):
-        environ = self.get_environment()
+        env = self.get_environment()
 
         def start_response(status, headers, exc_info=None):
             if self.complete and not exc_info:
@@ -437,27 +396,27 @@ class WSGITask(Task):
             return self.write
 
         # Call the application to handle the request and write a response
-        app_iter = self.channel.server.application(environ, start_response)
+        app_iter = self.channel.server.application(env, start_response)
 
-        can_close_app_iter = True
+        if app_iter.__class__ is ReadOnlyFileBasedBuffer:
+            # NB: do not put this inside the below try: finally: which closes
+            # the app_iter; we need to defer closing the underlying file.  It's
+            # intention that we don't want to call ``close`` here if the
+            # app_iter is a ROFBB; the buffer (and therefore the file) will
+            # eventually be closed within channel.py's _flush_some or
+            # handle_close instead.
+            cl = self.content_length
+            size = app_iter.prepare(cl)
+            if size:
+                if cl != size:
+                    if cl is not None:
+                        self.remove_content_length_header()
+                    self.content_length = size
+                self.write(b'') # generate headers
+                self.channel.write_soon(app_iter)
+                return
+
         try:
-            if app_iter.__class__ is ReadOnlyFileBasedBuffer:
-                cl = self.content_length
-                size = app_iter.prepare(cl)
-                if size:
-                    if cl != size:
-                        if cl is not None:
-                            self.remove_content_length_header()
-                        self.content_length = size
-                    self.write(b'') # generate headers
-                    # if the write_soon below succeeds then the channel will
-                    # take over closing the underlying file via the channel's
-                    # _flush_some or handle_close so we intentionally avoid
-                    # calling close in the finally block
-                    self.channel.write_soon(app_iter)
-                    can_close_app_iter = False
-                    return
-
             first_chunk_len = None
             for chunk in app_iter:
                 if first_chunk_len is None:
@@ -491,7 +450,7 @@ class WSGITask(Task):
                                 self.content_bytes_written, cl),
                         )
         finally:
-            if can_close_app_iter and hasattr(app_iter, 'close'):
+            if hasattr(app_iter, 'close'):
                 app_iter.close()
 
     def get_environment(self):
@@ -528,46 +487,42 @@ class WSGITask(Task):
                 if path.startswith(url_prefix_with_trailing_slash):
                     path = path[len(url_prefix):]
 
-        environ = {
-            'REMOTE_ADDR': channel.addr[0],
-            # Nah, we aren't actually going to look up the reverse DNS for
-            # REMOTE_ADDR, but we will happily set this environment variable
-            # for the WSGI application. Spec says we can just set this to
-            # REMOTE_ADDR, so we do.
-            'REMOTE_HOST': channel.addr[0],
-            # try and set the REMOTE_PORT to something useful, but maybe None
-            'REMOTE_PORT': str(channel.addr[1]),
-            'REQUEST_METHOD': request.command.upper(),
-            'SERVER_PORT': str(server.effective_port),
-            'SERVER_NAME': server.server_name,
-            'SERVER_SOFTWARE': server.adj.ident,
-            'SERVER_PROTOCOL': 'HTTP/%s' % self.version,
-            'SCRIPT_NAME': url_prefix,
-            'PATH_INFO': path,
-            'QUERY_STRING': request.query,
-            'wsgi.url_scheme': request.url_scheme,
+        environ = {}
+        environ['REQUEST_METHOD'] = request.command.upper()
+        environ['SERVER_PORT'] = str(server.effective_port)
+        environ['SERVER_NAME'] = server.server_name
+        environ['SERVER_SOFTWARE'] = server.adj.ident
+        environ['SERVER_PROTOCOL'] = 'HTTP/%s' % self.version
+        environ['SCRIPT_NAME'] = url_prefix
+        environ['PATH_INFO'] = path
+        environ['QUERY_STRING'] = request.query
+        host = environ['REMOTE_ADDR'] = channel.addr[0]
 
-            # the following environment variables are required by the WSGI spec
-            'wsgi.version': (1, 0),
-
-            # apps should use the logging module
-            'wsgi.errors': sys.stderr,
-            'wsgi.multithread': True,
-            'wsgi.multiprocess': False,
-            'wsgi.run_once': False,
-            'wsgi.input': request.get_body_stream(),
-            'wsgi.file_wrapper': ReadOnlyFileBasedBuffer,
-            'wsgi.input_terminated': True,  # wsgi.input is EOF terminated
-        }
-
-        for key, value in dict(request.headers).items():
+        headers = dict(request.headers)
+        if host == server.adj.trusted_proxy:
+            wsgi_url_scheme = headers.pop('X_FORWARDED_PROTO',
+                                          request.url_scheme)
+        else:
+            wsgi_url_scheme = request.url_scheme
+        if wsgi_url_scheme not in ('http', 'https'):
+            raise ValueError('Invalid X_FORWARDED_PROTO value')
+        for key, value in headers.items():
             value = value.strip()
             mykey = rename_headers.get(key, None)
             if mykey is None:
-                mykey = 'HTTP_' + key
+                mykey = 'HTTP_%s' % key
             if mykey not in environ:
                 environ[mykey] = value
 
-        # cache the environ for this request
+        # the following environment variables are required by the WSGI spec
+        environ['wsgi.version'] = (1, 0)
+        environ['wsgi.url_scheme'] = wsgi_url_scheme
+        environ['wsgi.errors'] = sys.stderr # apps should use the logging module
+        environ['wsgi.multithread'] = True
+        environ['wsgi.multiprocess'] = False
+        environ['wsgi.run_once'] = False
+        environ['wsgi.input'] = request.get_body_stream()
+        environ['wsgi.file_wrapper'] = ReadOnlyFileBasedBuffer
+
         self.environ = environ
         return environ

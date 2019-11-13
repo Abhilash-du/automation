@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Helpers to fill and submit forms."""
 
-import operator
 import re
 import sys
 
@@ -38,7 +37,7 @@ class Upload(object):
 
     def __iter__(self):
         yield self.filename
-        if self.content is not None:
+        if self.content:
             yield self.content
             yield self.content_type
         # TODO: do we handle the case when we need to get
@@ -103,7 +102,6 @@ class Select(Field):
     def __init__(self, *args, **attrs):
         super(Select, self).__init__(*args, **attrs)
         self.options = []
-        self.optionPositions = []
         # Undetermined yet:
         self.selectedIndex = None
         # we have no forced value
@@ -113,12 +111,7 @@ class Select(Field):
         """Like setting a value, except forces it (even for, say, hidden
         fields).
         """
-        try:
-            self.value = value
-            self._forced_value = NoValue
-        except ValueError:
-            self.selectedIndex = None
-            self._forced_value = value
+        self._forced_value = value
 
     def select(self, value=None, text=None):
         if value is not None and text is not None:
@@ -209,10 +202,6 @@ class MultipleSelect(Field):
         return value
 
     def value__set(self, values):
-        if not values:
-            self._forced_values = None
-        elif self._forced_values is not NoValue:
-            self._forced_values = NoValue
         str_values = [utils.stringify(value) for value in values]
         self.selectedIndices = []
         for i, (option, checked, text) in enumerate(self.options):
@@ -297,10 +286,6 @@ class Text(Field):
     """Field representing ``<input type="text">``"""
 
 
-class Email(Field):
-    """Field representing ``<input type="email">``"""
-
-
 class File(Field):
     """Field representing ``<input type="file">``"""
 
@@ -336,8 +321,8 @@ class Submit(Field):
     value = property(value__get, value__set)
 
     def value_if_submitted(self):
-        # parsed value of the empty string
-        return self._value or ''
+        # TODO: does this ever get set?
+        return self._value
 
 
 Field.classes['submit'] = Submit
@@ -355,8 +340,6 @@ Field.classes['hidden'] = Hidden
 Field.classes['file'] = File
 
 Field.classes['text'] = Text
-
-Field.classes['email'] = Email
 
 Field.classes['password'] = Text
 
@@ -484,9 +467,6 @@ class Form(object):
                     field.options.append((attrs.get('value'),
                                           'checked' in attrs,
                                           None))
-                    field.optionPositions.append(pos)
-                    if 'checked' in attrs:
-                        field.selectedIndex = len(field.options) - 1
                     continue
                 elif tag_type == 'file':
                     if 'value' in attrs:
@@ -670,29 +650,24 @@ class Form(object):
                 continue
             if submit_name is not None and name == submit_name:
                 if index is not None and current_index == index:
-                    submit.append((field.pos, name, field.value_if_submitted()))
+                    submit.append((name, field.value_if_submitted()))
                 if submit_value is not None and \
                    field.value_if_submitted() == submit_value:
-                    submit.append((field.pos, name, field.value_if_submitted()))
+                    submit.append((name, field.value_if_submitted()))
                 current_index += 1
             else:
                 value = field.value
                 if value is None:
                     continue
                 if isinstance(field, File):
-                    submit.append((field.pos, name, field))
+                    submit.append((name, field))
                     continue
-                if isinstance(field, Radio):
-                    if field.selectedIndex is not None:
-                        submit.append((field.optionPositions[field.selectedIndex], name, value))
-                        continue
                 if isinstance(value, list):
                     for item in value:
-                        submit.append((field.pos, name, item))
+                        submit.append((name, item))
                 else:
-                    submit.append((field.pos, name, value))
-        submit.sort(key=operator.itemgetter(0))
-        return [x[1:] for x in submit]
+                    submit.append((name, value))
+        return submit
 
     def __repr__(self):
         value = '<Form'

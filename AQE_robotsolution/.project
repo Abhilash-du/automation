@@ -17,7 +17,7 @@
 		</buildCommand>
 	</buildSpec>
 	<natures>
-		<nature>org.robotframework.ide.eclipse.main.plugin.robotNature</nature>
 		<nature>org.python.pydev.pythonNature</nature>
+		<nature>org.robotframework.ide.eclipse.main.plugin.robotNature</nature>
 	</natures>
 </projectDescription>

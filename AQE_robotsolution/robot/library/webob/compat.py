@@ -6,9 +6,8 @@ from cgi import parse_header
 
 # True if we are running on Python 3.
 PY3 = sys.version_info[0] == 3
-PY2 = sys.version_info[0] == 2
 
-if PY3:
+if PY3: # pragma: no cover
     string_types = str,
     integer_types = int,
     class_types = type,
@@ -33,7 +32,7 @@ def bytes_(s, encoding='latin-1', errors='strict'):
         return s.encode(encoding, errors)
     return s
 
-if PY3:
+if PY3: # pragma: no cover
     def native_(s, encoding='latin-1', errors='strict'):
         if isinstance(s, text_type):
             return s
@@ -49,14 +48,7 @@ try:
 except ImportError:
     from Queue import Queue, Empty
 
-try:
-    from collections.abc import MutableMapping
-    from collections.abc import Iterable
-except ImportError:
-    from collections import MutableMapping
-    from collections import Iterable
-
-if PY3:
+if PY3: # pragma: no cover
     from urllib import parse
     urlparse = parse
     from urllib.parse import quote as url_quote
@@ -76,11 +68,11 @@ if PY3: # pragma: no cover
         if exc.__traceback__ is not tb:
             raise exc.with_traceback(tb)
         raise exc
-else:
+else: # pragma: no cover
     exec("def reraise(exc): raise exc[0], exc[1], exc[2]")
 
 
-if PY3:
+if PY3: # pragma: no cover
     def iteritems_(d):
         return d.items()
     def itervalues_(d):
@@ -134,7 +126,7 @@ else:
             yield (x.decode(encoding), y.decode(encoding))
 
 
-if PY3:
+if PY3: # pragma no cover
     from html import escape
 else:
     from cgi import escape

@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function
 
 import datetime
 import operator
+import warnings
 
 from cryptography import utils, x509
 from cryptography.exceptions import UnsupportedAlgorithm
@@ -29,7 +30,7 @@ class _Certificate(object):
         self._x509 = x509
 
     def __repr__(self):
-        return "<Certificate(subject={}, ...)>".format(self.subject)
+        return "<Certificate(subject={0}, ...)>".format(self.subject)
 
     def __eq__(self, other):
         if not isinstance(other, x509.Certificate):
@@ -58,8 +59,17 @@ class _Certificate(object):
             return x509.Version.v3
         else:
             raise x509.InvalidVersion(
-                "{} is not a valid X509 version".format(version), version
+                "{0} is not a valid X509 version".format(version), version
             )
+
+    @property
+    def serial(self):
+        warnings.warn(
+            "Certificate serial is deprecated, use serial_number instead.",
+            utils.PersistentlyDeprecated,
+            stacklevel=2
+        )
+        return self.serial_number
 
     @property
     def serial_number(self):
@@ -107,7 +117,7 @@ class _Certificate(object):
             return x509._SIG_OIDS_TO_HASH[oid]
         except KeyError:
             raise UnsupportedAlgorithm(
-                "Signature algorithm OID:{} not recognized".format(oid)
+                "Signature algorithm OID:{0} not recognized".format(oid)
             )
 
     @property
@@ -261,7 +271,7 @@ class _CertificateRevocationList(object):
             return x509._SIG_OIDS_TO_HASH[oid]
         except KeyError:
             raise UnsupportedAlgorithm(
-                "Signature algorithm OID:{} not recognized".format(oid)
+                "Signature algorithm OID:{0} not recognized".format(oid)
             )
 
     @property
@@ -413,7 +423,7 @@ class _CertificateSigningRequest(object):
             return x509._SIG_OIDS_TO_HASH[oid]
         except KeyError:
             raise UnsupportedAlgorithm(
-                "Signature algorithm OID:{} not recognized".format(oid)
+                "Signature algorithm OID:{0} not recognized".format(oid)
             )
 
     @property

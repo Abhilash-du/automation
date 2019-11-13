@@ -5,16 +5,7 @@ class TestFileBasedBuffer(unittest.TestCase):
 
     def _makeOne(self, file=None, from_buffer=None):
         from waitress.buffers import FileBasedBuffer
-        buf = FileBasedBuffer(file, from_buffer=from_buffer)
-        self.buffers_to_close.append(buf)
-        return buf
-
-    def setUp(self):
-        self.buffers_to_close = []
-
-    def tearDown(self):
-        for buf in self.buffers_to_close:
-            buf.close()
+        return FileBasedBuffer(file, from_buffer=from_buffer)
 
     def test_ctor_from_buffer_None(self):
         inst = self._makeOne('file')
@@ -119,28 +110,17 @@ class TestFileBasedBuffer(unittest.TestCase):
         inst = self._makeOne(f)
         inst.close()
         self.assertTrue(f.closed)
-        self.buffers_to_close.remove(inst)
 
 class TestTempfileBasedBuffer(unittest.TestCase):
 
     def _makeOne(self, from_buffer=None):
         from waitress.buffers import TempfileBasedBuffer
-        buf = TempfileBasedBuffer(from_buffer=from_buffer)
-        self.buffers_to_close.append(buf)
-        return buf
-
-    def setUp(self):
-        self.buffers_to_close = []
-
-    def tearDown(self):
-        for buf in self.buffers_to_close:
-            buf.close()
+        return TempfileBasedBuffer(from_buffer=from_buffer)
 
     def test_newfile(self):
         inst = self._makeOne()
         r = inst.newfile()
         self.assertTrue(hasattr(r, 'fileno')) # file
-        r.close()
 
 class TestBytesIOBasedBuffer(unittest.TestCase):
 
@@ -167,16 +147,7 @@ class TestReadOnlyFileBasedBuffer(unittest.TestCase):
 
     def _makeOne(self, file, block_size=8192):
         from waitress.buffers import ReadOnlyFileBasedBuffer
-        buf = ReadOnlyFileBasedBuffer(file, block_size)
-        self.buffers_to_close.append(buf)
-        return buf
-
-    def setUp(self):
-        self.buffers_to_close = []
-
-    def tearDown(self):
-        for buf in self.buffers_to_close:
-            buf.close()
+        return ReadOnlyFileBasedBuffer(file, block_size)
 
     def test_prepare_not_seekable(self):
         f = KindaFilelike(b'abc')
@@ -264,16 +235,7 @@ class TestOverflowableBuffer(unittest.TestCase):
 
     def _makeOne(self, overflow=10):
         from waitress.buffers import OverflowableBuffer
-        buf = OverflowableBuffer(overflow)
-        self.buffers_to_close.append(buf)
-        return buf
-
-    def setUp(self):
-        self.buffers_to_close = []
-
-    def tearDown(self):
-        for buf in self.buffers_to_close:
-            buf.close()
+        return OverflowableBuffer(overflow)
 
     def test___len__buf_is_None(self):
         inst = self._makeOne()
@@ -283,7 +245,6 @@ class TestOverflowableBuffer(unittest.TestCase):
         inst = self._makeOne()
         inst.buf = b'abc'
         self.assertEqual(len(inst), 3)
-        self.buffers_to_close.remove(inst)
 
     def test___nonzero__(self):
         inst = self._makeOne()
@@ -291,7 +252,6 @@ class TestOverflowableBuffer(unittest.TestCase):
         self.assertEqual(bool(inst), True)
         inst.buf = b''
         self.assertEqual(bool(inst), False)
-        self.buffers_to_close.remove(inst)
 
     def test___nonzero___on_int_overflow_buffer(self):
         inst = self._makeOne()
@@ -304,7 +264,6 @@ class TestOverflowableBuffer(unittest.TestCase):
         self.assertEqual(bool(inst), True)
         inst.buf = b''
         self.assertEqual(bool(inst), False)
-        self.buffers_to_close.remove(inst)
 
     def test__create_buffer_large(self):
         from waitress.buffers import TempfileBasedBuffer
@@ -334,7 +293,6 @@ class TestOverflowableBuffer(unittest.TestCase):
         # we don't want this to throw an OverflowError on Python 2 (see
         # https://github.com/Pylons/waitress/issues/47)
         self.assertEqual(result, None)
-        self.buffers_to_close.remove(inst)
         
     def test_append_buf_None_not_longer_than_srtbuf_limit(self):
         inst = self._makeOne()
@@ -408,7 +366,6 @@ class TestOverflowableBuffer(unittest.TestCase):
         inst.buf = Buf()
         inst.prune()
         self.assertEqual(inst.buf.pruned, True)
-        self.buffers_to_close.remove(inst)
 
     def test_prune_with_buf_overflow(self):
         inst = self._makeOne()
@@ -419,8 +376,6 @@ class TestOverflowableBuffer(unittest.TestCase):
                 return True
             def __len__(self):
                 return 5
-            def close(self):
-                pass
         buf = DummyBuffer(b'data')
         inst.buf = buf
         inst.overflowed = True
@@ -456,7 +411,6 @@ class TestOverflowableBuffer(unittest.TestCase):
         inst = self._makeOne()
         inst.buf = None
         self.assertEqual(inst.close(), None) # doesnt raise
-        self.buffers_to_close.remove(inst)
 
     def test_close_withbuf(self):
         class Buffer(object):
@@ -467,7 +421,6 @@ class TestOverflowableBuffer(unittest.TestCase):
         inst.buf = buf
         inst.close()
         self.assertTrue(buf.closed)
-        self.buffers_to_close.remove(inst)
 
 class KindaFilelike(object):
 
@@ -475,7 +428,7 @@ class KindaFilelike(object):
         self.bytes = bytes
         self.tellresults = tellresults
         if close is not None:
-            self.close = lambda: close
+            self.close = close
 
 class Filelike(KindaFilelike):
 
@@ -497,7 +450,4 @@ class DummyBuffer(object):
         self.length = self.length + len(s)
 
     def prune(self):
-        pass
-
-    def close(self):
         pass

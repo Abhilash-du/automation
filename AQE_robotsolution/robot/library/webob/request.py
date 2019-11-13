@@ -12,9 +12,11 @@ except ImportError:
 import warnings
 
 from webob.acceptparse import (
-    accept_charset_property,
-    accept_encoding_property,
-    accept_language_property,
+    AcceptLanguage,
+    AcceptCharset,
+    MIMEAccept,
+    MIMENilAccept,
+    NoAccept,
     accept_property,
     )
 
@@ -24,7 +26,7 @@ from webob.cachecontrol import (
     )
 
 from webob.compat import (
-    PY2,
+    PY3,
     bytes_,
     native_,
     parse_qsl_text,
@@ -147,32 +149,40 @@ class BaseRequest(object):
                         "Unexpected keyword: %s=%r" % (name, value))
                 setattr(self, name, value)
 
-    def encget(self, key, default=NoDefault, encattr=None):
-        val = self.environ.get(key, default)
-        if val is NoDefault:
-            raise KeyError(key)
-        if val is default:
-            return default
-        if not encattr:
-            return val
-        encoding = getattr(self, encattr)
-
-        if PY2:
+    if PY3: # pragma: no cover
+        def encget(self, key, default=NoDefault, encattr=None):
+            val = self.environ.get(key, default)
+            if val is NoDefault:
+                raise KeyError(key)
+            if val is default:
+                return default
+            if not encattr:
+                return val
+            encoding = getattr(self, encattr)
+            if encoding in _LATIN_ENCODINGS: # shortcut
+                return val
+            return bytes_(val, 'latin-1').decode(encoding)
+    else:
+        def encget(self, key, default=NoDefault, encattr=None):
+            val = self.environ.get(key, default)
+            if val is NoDefault:
+                raise KeyError(key)
+            if val is default:
+                return default
+            if encattr is None:
+                return val
+            encoding = getattr(self, encattr)
             return val.decode(encoding)
-
-        if encoding in _LATIN_ENCODINGS: # shortcut
-            return val
-        return bytes_(val, 'latin-1').decode(encoding)
 
     def encset(self, key, val, encattr=None):
         if encattr:
             encoding = getattr(self, encattr)
         else:
             encoding = 'ascii'
-        if PY2: # pragma: no cover
-            self.environ[key] = bytes_(val, encoding)
-        else:
+        if PY3: # pragma: no cover
             self.environ[key] = bytes_(val, encoding).decode('latin-1')
+        else:
+            self.environ[key] = bytes_(val, encoding)
 
     @property
     def charset(self):
@@ -215,16 +225,16 @@ class BaseRequest(object):
         fs_environ = self.environ.copy()
         fs_environ.setdefault('CONTENT_LENGTH', '0')
         fs_environ['QUERY_STRING'] = ''
-        if PY2:
-            fs = cgi_FieldStorage(fp=self.body_file,
-                                  environ=fs_environ,
-                                  keep_blank_values=True)
-        else:
+        if PY3: # pragma: no cover
             fs = cgi_FieldStorage(fp=self.body_file,
                                   environ=fs_environ,
                                   keep_blank_values=True,
                                   encoding=charset,
                                   errors=errors)
+        else:
+            fs = cgi_FieldStorage(fp=self.body_file,
+                                  environ=fs_environ,
+                                  keep_blank_values=True)
 
         fout = t.transcode_fs(fs, r._content_type_raw)
 
@@ -308,7 +318,6 @@ class BaseRequest(object):
         environ_getter('CONTENT_LENGTH', None, '14.13'),
         parse_int_safe, serialize_int, 'int')
     remote_user = environ_getter('REMOTE_USER', None)
-    remote_host = environ_getter('REMOTE_HOST', None, '4.1.9')
     remote_addr = environ_getter('REMOTE_ADDR', None)
     query_string = environ_getter('QUERY_STRING', '')
     server_name = environ_getter('SERVER_NAME')
@@ -753,10 +762,12 @@ class BaseRequest(object):
         Return a MultiDict containing all the variables from a form
         request. Returns an empty dict-like object for non-form requests.
 
-        Form requests are typically POST requests, however any other
-        requests with an appropriate Content-Type are also supported.
+        Form requests are typically POST requests, however PUT & PATCH requests
+        with an appropriate Content-Type are also supported.
         """
         env = self.environ
+        if self.method not in ('POST', 'PUT', 'PATCH'):
+            return NoVars('Not a form request')
         if 'webob._parsed_post_vars' in env:
             vars, body_file = env['webob._parsed_post_vars']
             if body_file is self.body_file_raw:
@@ -781,19 +792,20 @@ class BaseRequest(object):
         # default of 0 is better:
         fs_environ.setdefault('CONTENT_LENGTH', '0')
         fs_environ['QUERY_STRING'] = ''
-        if PY2:
-            fs = cgi_FieldStorage(
-                fp=self.body_file,
-                environ=fs_environ,
-                keep_blank_values=True)
-        else:
+        if PY3: # pragma: no cover
             fs = cgi_FieldStorage(
                 fp=self.body_file,
                 environ=fs_environ,
                 keep_blank_values=True,
                 encoding='utf8')
+            vars = MultiDict.from_fieldstorage(fs)
+        else:
+            fs = cgi_FieldStorage(
+                fp=self.body_file,
+                environ=fs_environ,
+                keep_blank_values=True)
+            vars = MultiDict.from_fieldstorage(fs)
 
-        vars = MultiDict.from_fieldstorage(fs)
         env['webob._parsed_post_vars'] = (vars, self.body_file_raw)
         return vars
 
@@ -890,25 +902,14 @@ class BaseRequest(object):
         if clen is not None and clen != 0:
             return True
         elif clen is None:
-            # Rely on the special flag that signifies that either Chunked
-            # Encoding is allowed (and works) or we have replaced
-            # self.body_file with something that is readable and EOF's
-            # correctly.
-            return self.environ.get(
-                'wsgi.input_terminated',
-                # For backwards compatibility, we fall back to checking if
-                # webob.is_body_readable is set in the environ
-                self.environ.get(
-                    'webob.is_body_readable',
-                    False
-                )
-            )
+            # rely on the special flag
+            return self.environ.get('webob.is_body_readable', False)
 
         return False
 
     @is_body_readable.setter
     def is_body_readable(self, flag):
-        self.environ['wsgi.input_terminated'] = bool(flag)
+        self.environ['webob.is_body_readable'] = bool(flag)
 
     def make_body_seekable(self):
         """
@@ -1046,10 +1047,11 @@ class BaseRequest(object):
             if key in self.environ:
                 del self.environ[key]
 
-    accept = accept_property()
-    accept_charset = accept_charset_property()
-    accept_encoding = accept_encoding_property()
-    accept_language = accept_language_property()
+    accept = accept_property('Accept', '14.1', MIMEAccept, MIMENilAccept)
+    accept_charset = accept_property('Accept-Charset', '14.2', AcceptCharset)
+    accept_encoding = accept_property('Accept-Encoding', '14.3',
+                                      NilClass=NoAccept)
+    accept_language = accept_property('Accept-Language', '14.4', AcceptLanguage)
 
     authorization = converter(
         environ_getter('HTTP_AUTHORIZATION', None, '14.8'),
@@ -1467,7 +1469,7 @@ def environ_from_url(path):
 def environ_add_POST(env, data, content_type=None):
     if data is None:
         return
-    elif isinstance(data, text_type):
+    elif isinstance(data, text_type): # pragma: no cover
         data = data.encode('ascii')
     if env['REQUEST_METHOD'] not in ('POST', 'PUT'):
         env['REQUEST_METHOD'] = 'POST'
@@ -1698,23 +1700,26 @@ class Transcoder(object):
         self._trans = lambda b: b.decode(charset, errors).encode('utf8')
 
     def transcode_query(self, q):
-        q_orig = q
-        if '=' not in q:
-            # this doesn't look like a form submission
-            return q_orig
-
-        if PY2:
+        if PY3: # pragma: no cover
+            q_orig = q
+            if '=' not in q:
+                # this doesn't look like a form submission
+                return q_orig
+            q = list(parse_qsl_text(q, self.charset))
+            return url_encode(q)
+        else:
+            q_orig = q
+            if '=' not in q:
+                # this doesn't look like a form submission
+                return q_orig
             q = urlparse.parse_qsl(q, self.charset)
             t = self._trans
             q = [(t(k), t(v)) for k, v in q]
-        else:
-            q = list(parse_qsl_text(q, self.charset))
-
-        return url_encode(q)
+            return url_encode(q)
 
     def transcode_fs(self, fs, content_type):
         # transcode FieldStorage
-        if PY2:
+        if not PY3:
             def decode(b):
                 if b is not None:
                     return b.decode(self.charset, self.errors)
@@ -1740,3 +1745,4 @@ class Transcoder(object):
             fout=io.BytesIO()
         )
         return fout
+

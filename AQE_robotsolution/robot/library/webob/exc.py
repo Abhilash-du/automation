@@ -159,8 +159,8 @@ Relative URLs in the location will be resolved to absolute.
 
 References:
 
-.. [1] https://www.python.org/dev/peps/pep-0333/#error-handling
-.. [2] https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5
+.. [1] http://www.python.org/peps/pep-0333.html#error-handling
+.. [2] http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5
 
 
 """
@@ -170,7 +170,7 @@ from string import Template
 import re
 import sys
 
-from webob.acceptparse import create_accept_header
+from webob.acceptparse import MIMEAccept
 from webob.compat import (
     class_types,
     text_,
@@ -301,7 +301,7 @@ ${body}''')
             for k, v in self.headers.items():
                 args[k.lower()] = escape(v)
         t_obj = self.body_template_obj
-        return t_obj.safe_substitute(args)
+        return t_obj.substitute(args)
 
     def plain_body(self, environ):
         body = self._make_body(environ, no_escape)
@@ -331,11 +331,8 @@ ${body}''')
             del self.content_length
         headerlist = list(self.headerlist)
         accept_value = environ.get('HTTP_ACCEPT', '')
-        accept_header = create_accept_header(header_value=accept_value)
-        acceptable_offers = accept_header.acceptable_offers(
-            offers=['text/html', 'application/json'],
-        )
-        match = acceptable_offers[0][0] if acceptable_offers else None
+        accept = MIMEAccept(accept_value)
+        match = accept.best_match(['text/html', 'application/json'])
 
         if match == 'text/html':
             content_type = 'text/html'
@@ -1012,7 +1009,7 @@ class HTTPUnavailableForLegalReasons(HTTPClientError):
     From the draft "A New HTTP Status Code for Legally-restricted Resources"
     by Tim Bray:
 
-    https://tools.ietf.org/html/draft-tbray-http-legally-restricted-status-00
+    http://tools.ietf.org/html/draft-tbray-http-legally-restricted-status-00
 
     code: 451, title: Unavailable For Legal Reasons
     """

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from deepdiff.helper import RemapDict, strings, short_repr, Verbose, notpresent
+from deepdiff.helper import items, RemapDict, strings, short_repr, Verbose, notpresent
 from ast import literal_eval
 from copy import copy
-from ordered_set import OrderedSet
 
 FORCE_DEFAULT = 'fake'
 UP_DOWN = {'up': 'down', 'down': 'up'}
@@ -34,25 +33,16 @@ class ResultDict(RemapDict):
         Remove empty keys from this object. Should always be called after the result is final.
         :return:
         """
-        empty_keys = [k for k, v in self.items() if not v]
+        empty_keys = [k for k, v in getattr(self, items)() if not v]
 
         for k in empty_keys:
             del self[k]
 
 
-class PrettyOrderedSet(OrderedSet):
-    """
-    From the perspective of the users of the library, they are dealing with lists.
-    Behind the scene, we have ordered sets.
-    """
-    def __repr__(self):
-        return '[{}]'.format(", ".join(map(str, self)))
-
-
 class TreeResult(ResultDict):
     def __init__(self):
         for key in REPORT_KEYS:
-            self[key] = PrettyOrderedSet()
+            self[key] = set()
 
 
 class TextResult(ResultDict):
@@ -69,8 +59,8 @@ class TextResult(ResultDict):
             "iterable_item_removed": {},
             "attribute_added": self.__set_or_dict(),
             "attribute_removed": self.__set_or_dict(),
-            "set_item_removed": PrettyOrderedSet(),
-            "set_item_added": PrettyOrderedSet(),
+            "set_item_removed": set(),
+            "set_item_added": set(),
             "repetition_change": {}
         })
 
@@ -78,7 +68,7 @@ class TextResult(ResultDict):
             self._from_tree_results(tree_results)
 
     def __set_or_dict(self):
-        return {} if Verbose.level >= 2 else PrettyOrderedSet()
+        return {} if Verbose.level >= 2 else set()
 
     def _from_tree_results(self, tree):
         """
@@ -112,7 +102,7 @@ class TextResult(ResultDict):
 
                 # do the reporting
                 report = self[report_type]
-                if isinstance(report, PrettyOrderedSet):
+                if isinstance(report, set):
                     report.add(change.path(force=FORCE_DEFAULT))
                 elif isinstance(report, dict):
                     report[change.path(force=FORCE_DEFAULT)] = item
@@ -127,21 +117,13 @@ class TextResult(ResultDict):
     def _from_tree_type_changes(self, tree):
         if 'type_changes' in tree:
             for change in tree['type_changes']:
-                if type(change.t1) is type:
-                    include_values = False
-                    old_type = change.t1
-                    new_type = change.t2
-                else:
-                    include_values = True
-                    old_type = type(change.t1)
-                    new_type = type(change.t2)
                 remap_dict = RemapDict({
-                    'old_type': old_type,
-                    'new_type': new_type
+                    'old_type': type(change.t1),
+                    'new_type': type(change.t2)
                 })
                 self['type_changes'][change.path(
                     force=FORCE_DEFAULT)] = remap_dict
-                if Verbose.level and include_values:
+                if Verbose.level:
                     remap_dict.update(old_value=change.t1, new_value=change.t2)
 
     def _from_tree_value_changed(self, tree):
