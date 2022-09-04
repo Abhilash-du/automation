@@ -1,1 +1,1 @@
-# This is an Automation Framework developed for Automation Hackathon conducted at Amdocs Office
+# This is an Automation Framework developed in an Automation Hackathon event conducted at Amdocs Office
